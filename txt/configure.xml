@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuremap [
+  <!ELEMENT configuremap (configure)+>
+  <!ATTLIST configuremap xmlns CDATA #FIXED ''>
+  <!ELEMENT configure EMPTY>
+  <!ATTLIST configure xmlns CDATA #FIXED '' name NMTOKEN #REQUIRED
+    value CDATA #REQUIRED>
+]>
+<!--
+  ImageMagick build configuration.
+-->
+<configuremap>
+  <configure name="CC" value="gcc"/>
+  <configure name="CFLAGS" value="-I/opt/homebrew/opt/libpng/include/libpng16 -I/opt/homebrew/opt/freetype/include/freetype2 -I/opt/homebrew/opt/libpng/include/libpng16 -I/opt/homebrew/Cellar/fontconfig/2.18.3/include -I/opt/homebrew/opt/freetype/include/freetype2 -I/opt/homebrew/opt/libpng/include/libpng16 -Wall -g -O2 -fexceptions -D_FORTIFY_SOURCE=0 -pthread -DMAGICKCORE_HDRI_ENABLE=1 -DMAGICKCORE_QUANTUM_DEPTH=16 -I/opt/homebrew/opt/jpeg-turbo/include -DMAGICKCORE_CHANNEL_MASK_DEPTH=32"/>
+  <configure name="CHANNEL_MASK_DEPTH" value="32"/>
+  <configure name="CODER_PATH" value="/Users/hjr/.local/share/giocoso4/lib/ImageMagick-7.1.2/modules-Q16HDRI/coders"/>
+  <configure name="CONFIGURE_PATH" value="/Users/hjr/.local/share/giocoso4/etc/ImageMagick-7/"/>
+  <configure name="CONFIGURE" value="./configure  '--prefix=/Users/hjr/.local/share/giocoso4' '--disable-installed' '--disable-shared' '--enable-static' '--without-perl' '--without-magick-plus-plus' '--without-bzlib' '--without-dps' '--without-djvu' '--without-fftw' '--without-flif' '--without-fpx' '--without-gslib' '--without-heic' '--without-jbig' '--without-jxl' '--without-lcms' '--without-lqr' '--without-lzma' '--without-openexr' '--without-openjp2' '--without-pango' '--without-raw' '--without-rsvg' '--without-tiff' '--without-webp' '--without-zip' '--without-zstd' '--without-video' '--without-x' '--with-jpeg' '--with-png' '--with-freetype'"/>
+  <configure name="COPYRIGHT" value="Copyright (C) 1999 ImageMagick Studio LLC"/>
+  <configure name="CPPFLAGS" value="-I/Users/hjr/.local/share/giocoso4/include/ImageMagick-7"/>
+  <configure name="CXXFLAGS" value="-g -O2 -pthread"/>
+  <configure name="CXX" value="g++"/>
+  <configure name="DEFS" value="-DHAVE_CONFIG_H"/>
+  <configure name="DELEGATES" value="fontconfig freetype jng jpeg png ps video xml zlib"/>
+  <configure name="DISTCHECK_CONFIG_FLAGS" value=" --disable-deprecated  --disable-installed  --with-quantum-depth=16  --with-jemalloc=no  --with-umem=no  --with-bzlib=no  --with-zip=no  --with-zstd=no  --with-autotrace=no  --with-dps=no  --with-fftw=no  --with-flif=no  --with-fpx=no  --with-djvu=no  --with-gslib=no  --with-heic=no  --with-lcms=no  --with-openjp2=no  --with-lqr=no  --with-lzma=no  --with-openexr=no  --with-pango=no  --with-libraw=no  --with-rsvg=no  --with-tiff=no  --with-uhdr=no  --with-webp=no  --with-wmf=no  --with-perl=no "/>
+  <configure name="DOCUMENTATION_PATH" value="/Users/hjr/.local/share/giocoso4/share/doc/ImageMagick-7"/>
+  <configure name="EXEC-PREFIX" value="/Users/hjr/.local/share/giocoso4"/>
+  <configure name="EXECUTABLE_PATH" value="/Users/hjr/.local/share/giocoso4/bin"/>
+  <configure name="FEATURES" value="Channel-masks(32-bit) Cipher DPC HDRI"/>
+  <configure name="FILTER_PATH" value="/Users/hjr/.local/share/giocoso4/lib/ImageMagick-7.1.2/modules-Q16HDRI/filters"/>
+  <configure name="GIT_REVISION" value="24546" />
+  <configure name="HOST" value="aarch64-apple-darwin27.0.0"/>
+  <configure name="INCLUDE_PATH" value="/Users/hjr/.local/share/giocoso4/include/ImageMagick-7"/>
+  <configure name="LDFLAGS" value="-L/Users/hjr/.local/share/giocoso4/lib "/>
+  <configure name="LIBRARY_ABSOLUTE_PATH" value="/Users/hjr/.local/share/giocoso4/lib/ImageMagick-7.1.2"/>
+  <configure name="LIBS" value="     -L/opt/homebrew/opt/freetype/lib -lfreetype  -L/opt/homebrew/opt/jpeg-turbo/lib -ljpeg    -L/opt/homebrew/opt/libpng/lib -lpng16      -L/opt/homebrew/Cellar/fontconfig/2.18.3/lib -lfontconfig                 -lxml2  -lz     -lm    -lpthread    "/>
+  <configure name="LIB_VERSION_NUMBER" value="7,1,2,30"/>
+  <configure name="LIB_VERSION" value="0x712"/>
+  <configure name="NAME" value="ImageMagick"/>
+  <configure name="PCFLAGS" value="-DMAGICKCORE_HDRI_ENABLE=1 -DMAGICKCORE_QUANTUM_DEPTH=16 -DMAGICKCORE_CHANNEL_MASK_DEPTH=32"/>
+  <configure name="PREFIX" value="/Users/hjr/.local/share/giocoso4"/>
+  <configure name="QuantumDepth" value="16"/>
+  <configure name="RELEASE_DATE" value="2026-08-23"/>
+  <configure name="SECURITY_POLICY" value="open"/>
+  <configure name="SHAREARCH_PATH" value="/Users/hjr/.local/share/giocoso4/lib/ImageMagick-7.1.2/config-Q16HDRI"/>
+  <configure name="SHARE_PATH" value="/Users/hjr/.local/share/giocoso4/share/ImageMagick-7"/>
+  <configure name="TARGET_CPU" value="aarch64"/>
+  <configure name="TARGET_OS" value="darwin27.0.0"/>
+  <configure name="TARGET_VENDOR" value="apple"/>
+  <configure name="VERSION" value="7.1.2"/>
+  <configure name="WEBSITE" value="https://imagemagick.org"/>
+</configuremap>
