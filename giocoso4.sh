@@ -428,11 +428,12 @@ fi
 }
 
 function display_data {
-local i counter                                       								# Loop scratch values only (lastline_reached, composition and performers stay global: redisplay_data re-uses them)	
+local i counter lastline_reached                      								# Loop scratch values
+local -a composition performers                        								# Caption lines for the work and the performers; used only within this function
 $SEDPROG -i "s/'/'\\\''/g" "$CONFDIR/txt/giocoso-tracklist.txt"             		# Parse tracklist and replace single quotes with escaped version
 $SEDPROG -i "s/#/'/g" "$CONFDIR/txt/giocoso-tracklist.txt"
 
-if [[ $DIRECT_PLAY -eq  0 ]]; then
+if [[ $DIRECT_PLAY -eq  0 ]]; then 
   source "$CONFDIR/bin/gioart.sh" "$displaycomp" "$displaywork"				# Create a displayable piece of album art+caption
   WORKNAMELength=${#FULLWORKNAME}; WORKNAMELines=$(( (WORKNAMELength + 45) / 45 ))	# Some maths to work out how many lines something takes, assuming a display width of 45 characters.
   tput cup  5 4; echo -en "                                              "
