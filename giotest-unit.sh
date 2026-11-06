@@ -171,17 +171,17 @@ if load_fn conf_text gioconfconstruct.sh && load_fn create_conf gioconfconstruct
   }
 
   # 5a. Ordinary values with spaces: the file must source cleanly, and the values come back intact
-  set_defaults; CONFBACKUPDIR="/Users/hjr/Desktop/Proof of Identity"
+  set_defaults; CONFBACKUPDIR="/Users/someone/Desktop/My Backups"
   create_conf
   ( source "$CONFFILE" ) 2>"$TMP/err" ; rc=$?
   check "conf sources without error" "0" "$rc"
   check "conf sources silently" "" "$(cat "$TMP/err")"
-  check "BACKUP_DIR with spaces survives sourcing" "/Users/hjr/Desktop/Proof of Identity" \
+  check "BACKUP_DIR with spaces survives sourcing" "/Users/someone/Desktop/My Backups" \
         "$(source "$CONFFILE"; printf '%s' "$BACKUP_DIR")"
   check "WEZTHEME with a space survives sourcing"  "Banana Blueberry" \
         "$(source "$CONFFILE"; printf '%s' "$WEZTHEME")"
   check "numeric value survives sourcing"          "20" "$(source "$CONFFILE"; printf '%s' "$SELECTIONS")"
-  check "conf_text reads BACKUP_DIR without quotes" "/Users/hjr/Desktop/Proof of Identity" "$(conf_text BACKUP_DIR)"
+  check "conf_text reads BACKUP_DIR without quotes" "/Users/someone/Desktop/My Backups" "$(conf_text BACKUP_DIR)"
   check "conf_text reads DEVICE"                    "default" "$(conf_text DEVICE)"
   check "conf_text of a missing key is empty"       "" "$(conf_text NO_SUCH_KEY)"
 
