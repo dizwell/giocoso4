@@ -323,7 +323,7 @@ FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" 2>/dev/null | $GREPPR
     done
     
   elif [[ $1 == minig ]]; then
-    if [[ $FFMPEGCOUNT -eq 0 ]]; then 
+    if [[ $FFMPEGCOUNT -eq 0 && ! -f $CONFDIR/txt/searchfilter.txt ]]; then 
       tput cup 5 4; tput setaf $MAINTEXT; echo "P) Play Music"
       tput cup 6 4; tput setaf $MAINTEXT; echo "F) Filter Selection"
       tput cup 7 4; echo "1) Select a PulseAudio Server"
@@ -401,12 +401,22 @@ FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" 2>/dev/null | $GREPPR
         fi
       fi
     fi
-  
+	
+    # Snapshot of "what is playing", so that the loop below can notice a change and redraw by itself
+    mgsig() { local np=0 sf=0 mg=""; [[ -f $CONFDIR/txt/nowplaying.txt ]] && np=1; [[ -f $CONFDIR/txt/searchfilter.txt ]] && sf=1; [[ -f $CONFDIR/txt/mgioplay.txt ]] && mg=$(<"$CONFDIR/txt/mgioplay.txt"); REPLY="$np|$sf|$mg"; }
+    mgsig; MGSIG_THEN=$REPLY
+	
     until [[ $option == q ]]; do
-      tput cup 25 25; tput civis; read -n 1 -s -r option
+      option=""
+      tput cup 25 25; tput civis
+      if ! read -t 2 -n 1 -s -r option; then          # No key within 2 seconds: has what's playing changed?
+        mgsig
+        [[ $REPLY != "$MGSIG_THEN" ]] && gmenuoptions minig
+        continue
+      fi
       case $option in
-         p|P ) FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" | $GREPPROG -v $GREPPROG | wc -l); if [[ $FFMPEGCOUNT -eq 0 ]]; then source "$CONFDIR/bin/giomplay.sh"; gmenuoptions minig; fi;;
-         f|F ) FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" | $GREPPROG -v $GREPPROG | wc -l); if [[ $FFMPEGCOUNT -eq 0 ]]; then source "$CONFDIR/bin/giominifilter.sh"; gmenuoptions minig; fi;;
+         p|P ) FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" | $GREPPROG -v $GREPPROG | wc -l); if [[ $FFMPEGCOUNT -eq 0 && ! -f $CONFDIR/txt/searchfilter.txt ]]; then source "$CONFDIR/bin/giomplay.sh"; gmenuoptions minig; fi;;
+         f|F ) FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" | $GREPPROG -v $GREPPROG | wc -l); if [[ $FFMPEGCOUNT -eq 0 && ! -f $CONFDIR/txt/searchfilter.txt ]]; then source "$CONFDIR/bin/giominifilter.sh"; gmenuoptions minig; fi;;
          1 ) source "$CONFDIR/bin/giominip.sh"; gmenuoptions minig;;
          2 ) source "$CONFDIR/bin/giopsink.sh"; gmenuoptions minig;;
          3 ) gmenuoptions minig;;
