@@ -344,18 +344,20 @@ dialog --backtitle "Giocoso Music Selection by Filter" --title " Please enter yo
 2>"$CONFDIR/tmp/musicfilter.txt"
 DIALOGSTATUS=$?
 
+FILTERCANCELLED=0
 if [[ $DIALOGSTATUS -eq 1 || $DIALOGSTATUS -eq 255 ]]; then
-  :		# Status 1 means they took the 'Cancel' option; 255 is they pressed 'ESC'. In either case, do nothing and just return to the main menu
+  FILTERCANCELLED=1	# Status 1 means they took the 'Cancel' option; 255 is they pressed 'ESC'. Tell the caller to return to the main menu without playing anything
 else
   parse_filter	
 fi
 
 rm -f "$CONFDIR/tmp/musicfilter.txt" 2>/dev/null
 rm -f "$CONFDIR/txt/searchfilter.txt" 2>/dev/null
-echo "$VALIDDIRS" > "$CONFDIR/txt/searchfilter.txt"
 
-sleep .1
-$SEDPROG -i '/^[[:space:]]*$/d' "$CONFDIR/txt/searchfilter.txt" 2>/dev/null      # Remove blank line from top of file list, should there be one
-$SEDPROG -i '/concat(/d' "$CONFDIR/txt/searchfilter.txt" 2>/dev/null             # Remove query from top of file list, should it get into there		c
-sleep .2
-
+if [[ $FILTERCANCELLED -eq 0 ]]; then
+  echo "$VALIDDIRS" > "$CONFDIR/txt/searchfilter.txt"
+  sleep .1
+  $SEDPROG -i '/^[[:space:]]*$/d' "$CONFDIR/txt/searchfilter.txt" 2>/dev/null      # Remove blank line from top of file list, should there be one
+  $SEDPROG -i '/concat(/d' "$CONFDIR/txt/searchfilter.txt" 2>/dev/null             # Remove query from top of file list, should it get into there
+  sleep .2
+fi

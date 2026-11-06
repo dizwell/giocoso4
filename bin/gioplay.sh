@@ -64,6 +64,7 @@ function play_filter {
 LINENUM=1; PLAYS=1; DIRECT_PLAY=0; LINESELECTIONS=0; RECORDPLAY=0; tput civis
 source "$CONFDIR/bin/giofilter.sh"                               # Invokes the user-input screen for selections to be made
 
+if [[ $FILTERCANCELLED -eq 1 ]]; then return; fi
 LINESELECTIONS=$(cat "$CONFDIR/txt/searchfilter.txt" | wc -l)
 if [[ $LINESELECTIONS -eq 0 ]]; then
   dialog --stdout --backtitle "Giocoso Music Search Failure" --title " No Matching Results " --msgbox "\nNo music can be found to match the selection criteria specified by your choice of filters. \n\nMaybe relax or re-think your various selection filters before trying again." 10 80
