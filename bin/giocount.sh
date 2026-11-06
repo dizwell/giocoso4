@@ -61,27 +61,29 @@ echo "LastPlay@$LASTPLAYED">> "$CONFDIR"/txt/mgioplay.txt
 
 if [[ $DIRECT_PLAY -eq 1 ]]; then tput cup 17 4; tput setaf "$MAINTEXT"; echo -en "Ending at: ";tput setaf "$INFOTEXT"; echo -en "$INVARIANT_ENDING_TIME"; fi
 
-# This code turns what's playing into html, for use on a website with hot links, for example, to biographies
-# ===============================================================================================================
-# Build the website's composer URL fragment, identically on every OS: transliterate accents to plain
-# ASCII, drop everything that isn't a letter, digit or space, then encode the spaces.
-# iconv's //TRANSLIT only works under a UTF-8 locale, so use one if the session lacks it.
-ICONVLOCALE="${LC_ALL:-${LC_CTYPE:-$LANG}}"
-case "$ICONVLOCALE" in
-  *[Uu][Tt][Ff]-8*|*[Uu][Tt][Ff]8*) : ;;
-  *) if [[ $OSFAMILY == *"MACOS"* ]]; then ICONVLOCALE="en_GB.UTF-8"; else ICONVLOCALE="C.UTF-8"; fi ;;
-esac
-HTMLARTIST=$(printf '%s' "$THISARTIST" | LC_ALL="$ICONVLOCALE" iconv -f utf-8 -t ascii//TRANSLIT 2>/dev/null | $SEDPROG 's/[^a-zA-Z 0-9]//g; s/ /%20/g')
-echo "<b>Composer</b>     :  <a href=\"https://bbritten.com/composer/$HTMLARTIST/\" target=\"_blank\">$THISARTIST</a>" > "$CONFDIR"/txt/newplay.txt		# At the start of a new play, output details of what's about to be played
-echo "<b>Recording</b>    :  $THISALBUM" >> "$CONFDIR"/txt/newplay.txt	 # to a text file (which can subsequently be uploaded to a website, for example)
-echo "<b>Performers</b>  :  $THISCOMMENT" >> "$CONFDIR"/txt/newplay.txt
-echo "" >> "$CONFDIR"/txt/newplay.txt
-echo "<b>Started at</b>   : $STARTEDPLAYING" >> "$CONFDIR"/txt/newplay.txt
-echo "<b>Duration</b>      : $PLAYLENGTH" >> "$CONFDIR"/txt/newplay.txt
-echo "<b>Ending at</b>     : $INVARIANT_ENDING_TIME" >> "$CONFDIR"/txt/newplay.txt
-echo "<b>Audio Tech</b>  : $displaydepth/$displayhertz" >> "$CONFDIR"/txt/newplay.txt
-echo "<b>Previous plays</b>  : $PREVIOUSPLAYS" >> "$CONFDIR"/txt/newplay.txt
-echo "<b>Days since last play</b>  : $LASTPLAYED" >> "$CONFDIR"/txt/newplay.txt
+if [[ $(whoami) == "hjr" ]]; then
+  # This code turns what's playing into html, for use on a website with hot links, for example, to biographies
+  # ===============================================================================================================
+  # Build the website's composer URL fragment, identically on every OS: transliterate accents to plain
+  # ASCII, drop everything that isn't a letter, digit or space, then encode the spaces.
+  # iconv's //TRANSLIT only works under a UTF-8 locale, so use one if the session lacks it.
+  ICONVLOCALE="${LC_ALL:-${LC_CTYPE:-$LANG}}"
+  case "$ICONVLOCALE" in
+    *[Uu][Tt][Ff]-8*|*[Uu][Tt][Ff]8*) : ;;
+    *) if [[ $OSFAMILY == *"MACOS"* ]]; then ICONVLOCALE="en_GB.UTF-8"; else ICONVLOCALE="C.UTF-8"; fi ;;
+  esac
+  HTMLARTIST=$(printf '%s' "$THISARTIST" | LC_ALL="$ICONVLOCALE" iconv -f utf-8 -t ascii//TRANSLIT 2>/dev/null | $SEDPROG 's/[^a-zA-Z 0-9]//g; s/ /%20/g')
+  echo "<b>Composer</b>     :  <a href=\"https://bbritten.com/composer/$HTMLARTIST/\" target=\"_blank\">$THISARTIST</a>" > "$CONFDIR"/txt/newplay.txt		# At the start of a new play, output details of what's about to be played
+  echo "<b>Recording</b>    :  $THISALBUM" >> "$CONFDIR"/txt/newplay.txt	 # to a text file (which can subsequently be uploaded to a website, for example)
+  echo "<b>Performers</b>  :  $THISCOMMENT" >> "$CONFDIR"/txt/newplay.txt
+  echo "" >> "$CONFDIR"/txt/newplay.txt
+  echo "<b>Started at</b>   : $STARTEDPLAYING" >> "$CONFDIR"/txt/newplay.txt 
+  echo "<b>Duration</b>      : $PLAYLENGTH" >> "$CONFDIR"/txt/newplay.txt
+  echo "<b>Ending at</b>     : $INVARIANT_ENDING_TIME" >> "$CONFDIR"/txt/newplay.txt
+  echo "<b>Audio Tech</b>  : $displaydepth/$displayhertz" >> "$CONFDIR"/txt/newplay.txt
+  echo "<b>Previous plays</b>  : $PREVIOUSPLAYS" >> "$CONFDIR"/txt/newplay.txt
+  echo "<b>Days since last play</b>  : $LASTPLAYED" >> "$CONFDIR"/txt/newplay.txt
+fi
 
 # This is the main 'process play control commands loop
 # ===============================================================================================================
