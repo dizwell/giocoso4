@@ -18,16 +18,17 @@ for i in "$CONFDIR/play/"*.play; do
 done
 if ((${#PLAYLIST[@]} == 0)); then
   dialog --backtitle "Giocoso Music Selection by Playlist" --title " No Playlists Available! " --msgbox "\nNo playlists were found in the /play folder of the Giocoso installation. Press OK to return to the main menu." 8 80
+  IFS=${old_IFS}
   return 1
 fi
-
 
 playlist_name=$(dialog --no-tags --backtitle "Giocoso Music Selection by Playlist" --radiolist "Select a playlist to play" 12 80 0 "${PLAYLIST[@]}" 3>&1 1>&2 2>&3 3>&- )
 exitStatus=$?
 
 if [[ $exitStatus -ne 0 || -z $playlist_name ]]; then
+  IFS=${old_IFS}
   unset playlist_name
-else
-  playlist_name="$CONFDIR/play/$playlist_name".play
+  return 1                    # Cancelled: tell play_playlist to go straight back to the menu
 fi
+playlist_name="$CONFDIR/play/$playlist_name".play
 IFS=${old_IFS}
