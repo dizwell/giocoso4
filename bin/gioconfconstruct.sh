@@ -39,11 +39,11 @@ if [[ -f $CONFFILE ]]; then
   confdiatheme=$(conf_text DIATHEME); if [[ -z $confdiatheme ]]; then confdiatheme="standard"; fi
   
   # Numerics
-  confselections=$(cat "$CONFFILE" | $GREPPROG -i SELECTIONS= | awk -F= '{print $2}'); if [[ -z $confselections || ! $confselections =~ ^[0-9]+$ ]]; then confselections=1; fi
-  conftimebar=$(cat "$CONFFILE" | $GREPPROG -i TIMEBAR= | awk -F= '{print $2}'); if [[ -z $conftimebar || ! $conftimebar =~ ^[0-9]+$ ]]; then conftimebar=6; fi
-  confartsize=$(cat "$CONFFILE" | $GREPPROG -i ARTSIZE= | awk -F= '{print $2}'); if [[ -z $confartsize || ! $confartsize =~ ^[0-9]+$ ]]; then confartsize=341; fi
+  confselections=$(cat "$CONFFILE" | $GREPPROG -i SELECTIONS= | awk -F= '{print $2}'); if [[ -z $confselections || ! $confselections =~ ^[0-9]+$ ]]; then confselections=10; fi
+  conftimebar=$(cat "$CONFFILE" | $GREPPROG -i TIMEBAR= | awk -F= '{print $2}'); if [[ -z $conftimebar || ! $conftimebar =~ ^[0-9]+$ ]]; then conftimebar=24; fi
+  confartsize=$(cat "$CONFFILE" | $GREPPROG -i ARTSIZE= | awk -F= '{print $2}'); if [[ -z $confartsize || ! $confartsize =~ ^[0-9]+$ ]]; then confartsize=340; fi
   confcount=$(cat "$CONFFILE" | $GREPPROG -i COUNTDOWN= | awk -F= '{print $2}'); if [[ -z $confcount || ! $confcount =~ ^[0-9]+$ ]]; then confcount=120; fi
-  conflogosize=$(cat "$CONFFILE" | $GREPPROG -i LOGOSIZE= | awk -F= '{print $2}'); if [[ -z $conflogosize || ! $conflogosize =~ ^[0-9]+$ ]]; then conflogosize=120; fi
+  conflogosize=$(cat "$CONFFILE" | $GREPPROG -i LOGOSIZE= | awk -F= '{print $2}'); if [[ -z $conflogosize || ! $conflogosize =~ ^[0-9]+$ ]]; then conflogosize=110; fi
   conflogopos=$(cat "$CONFFILE" | $GREPPROG -i LOGOPOS= | awk -F= '{print $2}'); if [[ -z $conflogopos || ! $conflogopos =~ ^-?[0-9]+$ ]]; then conflogopos=0; fi
   confwezfntsz=$(cat "$CONFFILE" | $GREPPROG -i WEZFNTSZ= | awk -F= '{print $2}'); if [[ -z $confwezfntsz || ! $confwezfntsz =~ ^[0-9]+$ ]]; then confwezfntsz=12; fi
   
@@ -144,8 +144,8 @@ else
   # Process the numeric parameters: They mostly need to be positive integers, with defaults applied where they fail that test
   # The regex used will reject both null and negatives. Logopos uses a slightly different regex that permits negatives
   # ====================================================================
-  CONFSELECTIONS="${numparams[0]}"  ; if [[ ! $CONFSELECTIONS =~ ^[0-9]+$ ]]; then CONFSELECTIONS=1; fi
-  CONFTIMEBAR="${numparams[1]}"     ; if [[ ! $CONFTIMEBAR =~ ^[0-9]+$ ]]; then CONFTIMEBAR=6; fi
+  CONFSELECTIONS="${numparams[0]}"  ; if [[ ! $CONFSELECTIONS =~ ^[0-9]+$ ]]; then CONFSELECTIONS=10; fi
+  CONFTIMEBAR="${numparams[1]}"     ; if [[ ! $CONFTIMEBAR =~ ^[0-9]+$ ]]; then CONFTIMEBAR=24; fi
   CONFCOUNT="${numparams[2]}"       ; if [[ ! $CONFCOUNT =~ ^[0-9]+$ ]]; then CONFCOUNT=120; fi
   CONFARTSIZE="${numparams[3]}"     ; if [[ ! $CONFARTSIZE =~ ^[0-9]+$ ]]; then CONFARTSIZE=340; fi
   CONFLOGOSIZE="${numparams[4]}"    ; if [[ ! $CONFLOGOSIZE =~ ^[0-9]+$ ]]; then CONFLOGOSIZE=110; fi
