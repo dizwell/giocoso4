@@ -15,7 +15,7 @@ MAXLOOPS=$(cat "$CONFDIR/txt/searchfilter.txt" | wc -l)
 LINESELECTIONS=$MAXLOOPS
 
 if [[ $MAXLOOPS -eq 0 ]]; then
-  dialog --stdout --backtitle "Giocoso Music Search Failure" --title " No Matching Results " --msgbox "\nNo music can be found to match your default selection criteria.\n\nCheck the '$HOME/.local/share/giocoso3/tmp/folders-to-be-played.txt' file to see if that helps you work out why this might be, or consider editing your configuration parameters to relax various selection criteria and then try again." 12 80
+  dialog --stdout --backtitle "Giocoso Music Search Failure" --title " No Matching Results " --msgbox "\nNo music can be found to match your default selection criteria.\n\nCheck the '$CONFDIR/tmp/folders-to-be-played.txt' file to see if that helps you work out why this might be, or consider editing your configuration parameters to relax various selection criteria and then try again." 12 80
 fi
 
 while [[ $PLAYS -le $MAXLOOPS ]]; do 
