@@ -110,6 +110,7 @@ INVALIDFLAC=0                                              # Re-setting bad FLAC
 function play_sql {
 LINENUM=1; PLAYS=1; DIRECT_PLAY=0; tput civis
 source "$CONFDIR/bin/gioadvsql.sh"
+if [[ $SQLCANCELLED -eq 1 ]]; then return; fi
 LINESELECTIONS=$(cat "$CONFDIR/txt/searchfilter.txt" | wc -l)
 
 if [[ $LINESELECTIONS -eq 0 ]]; then

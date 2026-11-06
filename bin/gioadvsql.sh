@@ -126,6 +126,7 @@ done <<< "$DIRBASE"
 function main {
 unset QRYTEXT
 unset SQLTXT
+SQLCANCELLED=0
 rm -f "$CONFDIR/tmp/musicfilter.txt" 2>/dev/null
 rm -f "$CONFDIR/txt/searchfilter.txt" 2>/dev/null
 rm -f "$CONFDIR/txt/sqlfilter.txt" 2>/dev/null
@@ -138,6 +139,9 @@ if [[ $STOREDQUERIES -eq 0 ]]; then
 else
   fetch_stored_query
 fi
+
+# Cancelled at every stage? Then there is nothing to run: tell play_sql to return to the menu quietly
+if [[ -z $SQLTXT && -z $QRYTEXT ]]; then SQLCANCELLED=1; return; fi
 
 # If we've used a stored query, QRYTEXT won't need cleaning. 
 # If we've done a new query, SQLTXT will need some massaging though
