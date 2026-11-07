@@ -119,6 +119,29 @@ mariadb -h "$DESTHOST" -P "$DESTPORT" -u "$DESTUSR" -p"$DESTPWD" "$DESTDB" \
 rm -f "$TMPFILE"
 }
 
+function move_phonemes {
+TMPFILE=$(mktemp)
+
+# Only rows carrying a real pronunciation (a voice or a phoneme) are worth moving: blank rows are placeholders that the
+# recordings trigger creates for every composition. The merge differs from the other moves, because a blank row already in the
+# destination must not shield the source's real value. So: load into a temporary table, fill in destination rows that are blank,
+# and add rows the destination lacks. A destination row that already has a real value is never touched.
+# A Giocoso 3 source has no user_phonemes table: the export fails quietly, the file is empty, and nothing happens.
+mariadb -h "$SOURCEHOST" -P "$SOURCEPORT" -u "$SOURCEUSR" -p"$SOURCEPWD" "$SOURCEDB" \
+  --default-character-set=utf8mb4 --batch --skip-column-names \
+  -e "SELECT phrase, voice, phoneme FROM user_phonemes WHERE voice IS NOT NULL OR phoneme IS NOT NULL" \
+  > "$TMPFILE" 2>/dev/null
+
+mariadb -h "$DESTHOST" -P "$DESTPORT" -u "$DESTUSR" -p"$DESTPWD" "$DESTDB" \
+  --default-character-set=utf8mb4 --local-infile=1 \
+  -e "CREATE TEMPORARY TABLE moving_phonemes LIKE user_phonemes;
+      LOAD DATA LOCAL INFILE '$TMPFILE' INTO TABLE moving_phonemes (phrase, @voice, @phoneme) SET voice=NULLIF(@voice,'NULL'), phoneme=NULLIF(@phoneme,'NULL');
+      UPDATE user_phonemes u JOIN moving_phonemes m ON u.phrase = m.phrase SET u.voice = m.voice, u.phoneme = m.phoneme WHERE u.voice IS NULL AND u.phoneme IS NULL;
+      INSERT IGNORE INTO user_phonemes (phrase, voice, phoneme) SELECT phrase, voice, phoneme FROM moving_phonemes;" 2>/dev/null
+
+rm -f "$TMPFILE"
+}
+
 function dump_db {
 BACKUPSUCCESS="NO"	
 "$MARIADBDUMP" -h "$SOURCEHOST" -P "$SOURCEPORT" -u "$SOURCEUSR" -p"$SOURCEPWD" "$SOURCEDB" > "$BACKUP_DIR/giocoso4-$(date +%Y%m%d).sql" 2>/dev/null
@@ -189,6 +212,7 @@ if [[ $1 == "move" ]]; then
     move_plays
     move_notes
 	move_sql
+	move_phonemes
     MOVEOK=1
   fi
 
