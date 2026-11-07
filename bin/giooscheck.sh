@@ -276,8 +276,9 @@ if [[ $GIOSERVER == "yes" ]]; then
   # global_phonemes
   "${PROCONN[@]}" -e "create table if not exists global_phonemes (phrase varchar(128) not null, voice varchar(32) default null, phoneme varchar(256) default null, primary key (phrase))" 1>&2 2>/dev/null
   "${PROCONN[@]}" -e "create table if not exists user_phonemes (phrase varchar(128) not null, voice varchar(32) default null, phoneme varchar(256) default null, primary key (phrase))" 1>&2 2>/dev/null
-  "${PROCONN[@]}" -e "create trigger if not exists trg_global_recordings_phoneme after insert on global_recordings for each row insert ignore into user_phonemes (phrase) values (trim(left(new.composition, char_length(new.composition) - locate('(', reverse(new.composition)))))"
-
+  "${PROCONN[@]}" -e "drop trigger if exists trg_global_recordings_phoneme" 1>&2 2>/dev/null
+  "${PROCONN[@]}" -e "create trigger trg_global_recordings_phoneme after insert on global_recordings for each row insert ignore into user_phonemes (phrase) select trim(left(new.composition, char_length(new.composition) - locate('(', reverse(new.composition)))) from dual where not exists (select 1 from global_phonemes g where g.phrase = trim(left(new.composition, char_length(new.composition) - locate('(', reverse(new.composition)))))" 1>&2 2>/dev/null
+  
   # Other tables
   "${PROCONN[@]}" -e "create table if not exists stored_queries (query_name varchar(64) not null primary key, query_text longtext)" 1>&2 2>/dev/null
   "${PROCONN[@]}" -e "create table if not exists recording_numbers (day date not null primary key, num_recordings double not null)" 1>&2 2>/dev/null
