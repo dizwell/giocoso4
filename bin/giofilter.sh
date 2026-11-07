@@ -111,31 +111,6 @@ else
   RECDATESQL="1=1"
 fi
 
-# The under-played composers filter is complex. We first determine how long ago
-# we played every composer. We then take a single average of that "days ago"
-# value. Then we select recording from global_recordings by composers whose 
-# personal 'days ago' value is larger than that global average, ensuring we
-# only pick one (random) recording per qualified composer
-# -----------------------------------------------------------------------------
-if [[ ${UNPLAYEDCOMP,,} == y ]]; then
-	UNDERPLAYEDSQL="exists (
-	                  select 1
-	                  from (
-	                  select composer, composition, row_number() over (partition by composer order by rand()) as rn
-	                  from global_recordings
-	                  where composer in (
-	                  select composer
-	                  from underplayed_composers
-	                  )
-	                  ) as random_compositions
-	                  where rn = 1
-	                  and random_compositions.composer = global_recordings.composer
-	                  and random_compositions.composition = global_recordings.composition
-	                  )"
-else
-  UNDERPLAYEDSQL="1=1"
-fi
-
 # Unplayed recordings are easy to determine
 # -----------------------------------------------------------------------------
 if [[ ${UNPLAYEDWRKS,,} == y ]]; then
@@ -178,6 +153,32 @@ if [[ $MINDURATION -eq 0 && $MAXDURATION -eq 31557600 ]]; then        # Don't bo
   DURSTMT="1=1"
 else
   DURSTMT="duration >= $MINDURATION and duration <= $MAXDURATION"
+fi
+
+# The under-played composers filter is complex. We first determine how long ago
+# we played every composer. We then take a single average of that "days ago"
+# value. Then we select recording from global_recordings by composers whose 
+# personal 'days ago' value is larger than that global average, ensuring we
+# only pick one (random) recording per qualified composer
+# -----------------------------------------------------------------------------
+if [[ ${UNPLAYEDCOMP,,} == y ]]; then
+	UNDERPLAYEDSQL="exists (
+	                  select 1
+	                  from (
+	                  select composer, composition, row_number() over (partition by composer order by rand()) as rn
+	                  from global_recordings
+	                  where composer in (
+	                  select composer
+	                  from underplayed_composers
+	                  )
+	                  and $ARTSQL and $ALBSQL and $COMSQL and $PERFSQL and $GENRESQL and $RECDATESQL and $UNPLAYEDWORKSQL and $DURSTMT
+	                  ) as random_compositions
+	                  where rn = 1
+	                  and random_compositions.composer = global_recordings.composer
+	                  and random_compositions.composition = global_recordings.composition
+	                  )"
+else
+  UNDERPLAYEDSQL="1=1"
 fi
 
 SQLSTMT="select concat('"$FILEPREFIX"',filesuffix) as DIRNAME from global_recordings where"
