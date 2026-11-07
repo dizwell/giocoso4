@@ -286,6 +286,135 @@ if load_fn fetch_note gioretnote.sh && load_fn store_note gioretnote.sh; then
 fi
 
 # ----------------------------------------------------------------------------------------------------
+heading "7. get_rechash (giocontrol.sh)"
+if load_fn get_rechash giocontrol.sh; then
+  # get_rechash reads tags with metaflac, hashes with md5 and picks the hash out with gawk. Stand-ins keep this test
+  # independent of all three: the fake metaflac reads the tags from a text file sitting next to each "FLAC" file.
+  GAWKFAKED=0; if ! command -v gawk >/dev/null 2>&1; then function gawk { awk "$@"; }; GAWKFAKED=1; fi
+  MD5PROG=$(command -v md5sum || echo "md5 -q")
+  cat > "$TMP/fakemetaflac" <<'EOF'
+#!/usr/bin/env bash
+# Like metaflac --show-tag=NAME FILE: prints NAME=value, taken from FILE.tags
+tag=""; file=""
+for a in "$@"; do
+  case $a in --show-tag=*) tag=${a#--show-tag=};; -*) ;; *) file=$a;; esac
+done
+awk -F= -v t="$tag" 'toupper($1) == toupper(t) { print }' "$file.tags"
+EOF
+  chmod +x "$TMP/fakemetaflac"
+  METAFLAC="$TMP/fakemetaflac"; UTFCHARS="--no-utf8-convert"
+
+  # mkrec FOLDER FILE COMPOSER ALBUM: a fake recording file and its tags
+  function mkrec { mkdir -p "$1"; : > "$1/$2"; printf 'ARTIST=%s\nALBUM=%s\n' "$3" "$4" > "$1/$2.tags"; }
+  # expected_hash COMPOSER ALBUM: the hash Giocoso should arrive at
+  function expected_hash { printf '%s' "$1$2" | $MD5PROG | awk '{print $1}'; }
+
+  # Two files, created in the "wrong" order: the alphabetically first one must be the one that counts
+  mkrec "$TMP/rec one" b.flac "Composer B" "Work B"
+  mkrec "$TMP/rec one" a.flac "Dvo"$'ř'"ák" "Rusalka"
+  ALBUM=keepA; COMPOSER=keepC; FLACFILE=keepF; RECHASHVALUE=stale
+  pushd "$TMP/rec one" >/dev/null; get_rechash; rc=$?; popd >/dev/null
+  check "get_rechash succeeds in a folder with FLACs" "0" "$rc"
+  check "the hash comes from the alphabetically first file, and a folder name with a space is fine" \
+        "$(expected_hash "Dvo"$'ř'"ák" "Rusalka")" "$RECHASHVALUE"
+  [[ $RECHASHVALUE =~ ^[0-9a-f]{32}$ ]] && pass "the hash is 32 hexadecimal digits" || fail "the hash is not 32 hex digits" "$RECHASHVALUE"
+  check "it does not overwrite the caller's ALBUM, COMPOSER or FLACFILE" "keepA keepC keepF" "$ALBUM $COMPOSER $FLACFILE"
+
+  # No FLACs: fail, and do not leave an old hash lying around
+  mkdir -p "$TMP/rec empty"; RECHASHVALUE=stale
+  pushd "$TMP/rec empty" >/dev/null; get_rechash; rc=$?; popd >/dev/null
+  check "an empty folder returns failure" "1" "$rc"
+  check "and RECHASHVALUE is emptied, not left as the previous value" "" "$RECHASHVALUE"
+
+  mkdir -p "$TMP/rec text"; : > "$TMP/rec text/notes.txt"; : > "$TMP/rec text/cover.jpg"; RECHASHVALUE=stale
+  pushd "$TMP/rec text" >/dev/null; get_rechash; rc=$?; popd >/dev/null
+  check "a folder with no .flac files (only a .txt and a .jpg) returns failure" "1" "$rc"
+
+  # Only FLACs directly in the folder count: a folder of subfolders is not itself a recording
+  mkrec "$TMP/rec parent/child" c.flac "Composer C" "Work C"; RECHASHVALUE=stale
+  pushd "$TMP/rec parent" >/dev/null; get_rechash; rc=$?; popd >/dev/null
+  check "FLACs inside a subfolder do not count" "1" "$rc"
+  check "and RECHASHVALUE is empty" "" "$RECHASHVALUE"
+
+  # The same composer and album tags always give the same hash, wherever the folder is
+  mkrec "$TMP/rec two" z.flac "Composer B" "Work B"
+  pushd "$TMP/rec one" >/dev/null; rm -f a.flac a.flac.tags; get_rechash; h1=$RECHASHVALUE; popd >/dev/null
+  pushd "$TMP/rec two" >/dev/null; get_rechash; h2=$RECHASHVALUE; popd >/dev/null
+  check "identical tags in two different folders give the same hash" "$h1" "$h2"
+  unset ALBUM COMPOSER FLACFILE RECHASHVALUE h1 h2
+fi
+
+# ----------------------------------------------------------------------------------------------------
+heading "8. handle_autostop and handle_repeat (giocontrol.sh)"
+if load_fn handle_autostop giocontrol.sh && load_fn handle_repeat giocontrol.sh; then
+  # Both functions create their flag file only while something that looks like an ffmpeg playing session is running
+  # (a process whose command line contains "<FFNAME> -stats_period 1"), and remove it if it is already there.
+  # We use a made-up name and a harmless stand-in process, and a private CONFDIR, so a real session is never involved.
+  CONFDIR="$TMP/conf8"; mkdir -p "$CONFDIR/txt"; FFNAME="giotestff$$"
+  function ffcount { echo $(( $(ps -ef | $GREPPROG "$FFNAME -stats_period 1" | $GREPPROG -v $GREPPROG | wc -l) )); }
+
+  for name in autostop repeat; do
+    flag="$CONFDIR/txt/$name.txt"; rm -f "$flag"
+    handle_$name
+    [[ ! -e $flag ]] && pass "handle_$name: no playing session, so no flag file is created" || fail "handle_$name created $name.txt with nothing playing"
+    touch "$flag"; handle_$name
+    [[ ! -e $flag ]] && pass "handle_$name: an existing flag file is removed (the key toggles it off)" || fail "handle_$name left $name.txt in place"
+  done
+
+  bash -c 'sleep 60; :' "$FFNAME -stats_period 1" & DUMMY=$!
+  sleep .5
+  if [[ $(ffcount) -ge 1 ]]; then
+    for name in autostop repeat; do
+      flag="$CONFDIR/txt/$name.txt"; rm -f "$flag"
+      handle_$name
+      [[ -e $flag ]] && pass "handle_$name: with a session playing, the flag file is created" || fail "handle_$name did not create $name.txt while playing"
+      handle_$name
+      [[ ! -e $flag ]] && pass "handle_$name: pressed again, the flag is toggled off" || fail "handle_$name did not remove $name.txt on the second press"
+    done
+  else
+    skip "could not start a stand-in process visible to ps, so the 'playing' cases were not tested"
+  fi
+  { pkill -P $DUMMY; kill $DUMMY; wait $DUMMY; } 2>/dev/null
+  [[ $(ffcount) -eq 0 ]] && pass "the stand-in process was cleaned up" || fail "the stand-in process is still running"
+  [[ $CONFDIR == "$TMP"/* ]] && pass "all of this happened in the temporary folder, not the real txt folder" || fail "CONFDIR is not inside the temporary folder"
+  unset CONFDIR FFNAME DUMMY flag name
+fi
+
+# ----------------------------------------------------------------------------------------------------
+heading "9. handle_terminate (giocontrol.sh)"
+if load_fn handle_terminate giocontrol.sh && load_fn get_rechash giocontrol.sh && [[ -x $TMP/fakemetaflac ]]; then
+  # Terminate clears every other pending request, asks for the play to stop, and forgets any saved pause point.
+  # The screen drawing and the database client are replaced by stand-ins.
+  function footer_line { FOOTER="stub"; }
+  function tput { :; }
+  function ctl_fakedb { printf '%s\n' "$*" > "$TMP/db9_args"; }
+  PROCONN=(ctl_fakedb); CONFDIR="$TMP/conf9"; mkdir -p "$CONFDIR/txt"
+  mkrec "$TMP/rec nine" n.flac "Composer N" "Work N"
+  EXPECT=$(expected_hash "Composer N" "Work N")
+
+  touch "$CONFDIR/txt/repeat.txt" "$CONFDIR/txt/skip.txt" "$CONFDIR/txt/autostop.txt"; rm -f "$TMP/db9_args"
+  pushd "$TMP/rec nine" >/dev/null; handle_terminate >/dev/null; popd >/dev/null
+  [[ -e $CONFDIR/txt/terminate.txt ]] && pass "terminate.txt is created" || fail "terminate.txt was not created"
+  [[ ! -e $CONFDIR/txt/repeat.txt && ! -e $CONFDIR/txt/skip.txt && ! -e $CONFDIR/txt/autostop.txt ]] \
+    && pass "pending repeat, skip and autostop requests are cleared" || fail "a pending request survived a terminate"
+  check "the saved pause point for this recording is deleted" \
+        "-e delete from global_pauses where rechashvalue='$EXPECT'" "$(cat "$TMP/db9_args" 2>/dev/null)"
+
+  # In a folder with no FLACs there is nothing to identify, so the database must not be touched
+  rm -f "$TMP/db9_args" "$CONFDIR/txt/terminate.txt"; mkdir -p "$TMP/rec none"
+  pushd "$TMP/rec none" >/dev/null; handle_terminate >/dev/null; popd >/dev/null
+  [[ -e $CONFDIR/txt/terminate.txt ]] && pass "with no FLAC to identify, terminate.txt is still created" || fail "terminate.txt missing when there was no FLAC"
+  [[ ! -e $TMP/db9_args ]] && pass "and no database statement is sent" || fail "a database statement was sent with no recording to identify"
+  [[ $CONFDIR == "$TMP"/* ]] && pass "all of this happened in the temporary folder, not the real txt folder" || fail "CONFDIR is not inside the temporary folder"
+  unset -f footer_line tput ctl_fakedb
+  unset PROCONN CONFDIR EXPECT
+elif [[ ! -x $TMP/fakemetaflac ]]; then
+  skip "handle_terminate: the stand-in metaflac from section 7 is not available"
+fi
+unset METAFLAC UTFCHARS MD5PROG RECHASHVALUE
+[[ $GAWKFAKED -eq 1 ]] && unset -f gawk
+
+# ----------------------------------------------------------------------------------------------------
 echo
 echo "=============================================================================================="
 echo "  $PASSES passed, $SKIPS skipped, $FAILS failed"
