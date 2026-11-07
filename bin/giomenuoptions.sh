@@ -110,7 +110,7 @@ FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" 2>/dev/null | $GREPPR
     # ======================================================================================================
     tput cup  8 4; tput setaf $MAINTEXT; echo "1) Fast Scan for new recordings"
     tput cup  9 4;                       echo "2) Full Scan all recordings"
-    tput cup 10 4;                       echo "3) Move plays & notes between databases"
+    tput cup 10 4;                       echo "3) Move core tables between databases"
 	tput cup 11 4;                       echo "4) Backup the database"
 	tput cup 12 4;                       echo "5) Restore the database"
     tput cup 13 4;                       echo "6) View all recording notes"

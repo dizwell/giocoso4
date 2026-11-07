@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ####################################################################
 #
-# A function to backup and restore a MariaDB database (at least, the
+# A function to backup and restore a MariaDB database (at minimum, the
 # global_plays table contained within a Giocoso database).
 #
 # Script will prompt for the source and destination, so can be used 
@@ -178,7 +178,7 @@ fi
 # =======================================================================================
 #  Main code starts here. There are various scenarios:
 #
-#  1. Move plays and notes between databases: $1=move. Done via pipe-delimited text and
+#  1. Move core tables between databases: $1=move. Done via pipe-delimited text and
 #     the source database might be a Giocoso 3 one, so we shouldn't assume anything 
 #     about the source.
 #  2. Backup the database: $1=backup. Backing up a Giocoso 4 database, so we can assume
