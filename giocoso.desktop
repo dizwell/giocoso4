@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=giocoso4
+StartupWMClass=Xterm
+Comment=Randomising FLAC Player for Classical Music
+GenericName=Music Player
+Exec=/usr/bin/wezterm --config-file /home/xxxxxxxx/.giocoso.lua -e giocoso4.sh
+Icon=/home/xxxxxxxx/.local/share/giocoso4/art/giocosoico.png
+Type=Application
+Categories=AudioVideo;Audio;Player
