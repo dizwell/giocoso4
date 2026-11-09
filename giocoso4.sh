@@ -660,7 +660,6 @@ source "$CONFDIR/bin/giospin.sh"
 
 # Apply any parameters from the Configuration File
 parse_config                                                                                            
-export DIALOGRC="$CONFDIR/txt/$DIATHEME.conf" 
 
 for i in "$@"; do
 case $i in
