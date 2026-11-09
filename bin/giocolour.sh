@@ -90,3 +90,5 @@ $SEDPROG -i \
   -e "s/^SPINNER=.*/SPINNER=$SPINNER_VAL/" \
   -e "s/^ALERT=.*/ALERT=$ALERT_VAL/" \
   "$CONFFILE" 2>/dev/null
+# Re-read the configuration so the new colours take effect straight away, without a restart
+source "$CONFDIR/bin/gioparse.sh"
