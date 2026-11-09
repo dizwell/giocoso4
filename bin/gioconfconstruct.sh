@@ -105,7 +105,7 @@ if [[ -z $CONFBACKUPDIR ]]; then CONFBACKUPDIR="/tmp"; fi;
 if [[ ! -d $CONFBACKUPDIR ]]; then CONFBACKUPDIR="/tmp"; fi
 if [[ ! -w $CONFBACKUPDIR ]]; then CONFBACKUPDIR="/tmp"; fi
 	
-# Make sure CONFDIATHEME is one of giocosodialog, transparent, green or yellow. If not, it's giocosodialog
+# Make sure CONFDIATHEME is one of standard, red, green, yellow or magenta. If not, it's standard
 if [[ ${CONFDIATHEME,,} =~ ^(standard|red|green|yellow|magenta)$ ]]; then
   CONFDIATHEME=${CONFDIATHEME,,}	
 else

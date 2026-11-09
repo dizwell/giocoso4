@@ -278,3 +278,8 @@ for colourpair in HOTKEY:11 DRAWLINES:2 MAINTEXT:15 LOGO:6 INFOTEXT:11 SPINNER:1
   fi
 done
 unset colourpair colourname colourvalue
+
+# Dialog colour theme: must be one of the supplied themes (anything else, including blank, gets 'standard').
+# Exported here, so a theme chosen in the configuration editor takes effect as soon as it is saved.
+if [[ ${DIATHEME,,} =~ ^(standard|red|green|yellow|magenta)$ ]]; then DIATHEME=${DIATHEME,,}; else DIATHEME=standard; fi
+export DIALOGRC="$CONFDIR/txt/$DIATHEME.conf"
