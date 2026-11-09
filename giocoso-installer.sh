@@ -394,6 +394,8 @@ dialog --title " Software Components Completed " --msgbox "\\n\\nAll Giocoso's c
 }
 
 function backup_database {
+# Nothing to back up on a first-ever install, so skip creating an empty backup folder
+if [[ ! -d "$NEWCONF" ]] && ! compgen -G "/usr/bin/giocoso*.sh" >/dev/null && ! compgen -G "/usr/local/bin/giocoso*.sh" >/dev/null; then return; fi
 tput clear; print_header
 tput cup 6 4; tput setaf $MAINTEXT; echo -n "Backing up prior version's program & database."
 BACKUPDIR="$HOME/.local/share/giocoso-backup-$(date +%Y%m%d-%H%M%S)"
