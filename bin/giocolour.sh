@@ -43,11 +43,15 @@ while true; do
 
     ret=$?
     case $ret in
-        0)  # OK pressed, save values and break
+        0)  # OK pressed: save each value, but anything blank or not a whole number from 0 to 255
+            # is silently replaced by that colour's default, so the form never shows a blank
             mapfile -t colour_array <<< "$RESULT"
-            # fallback defaults if empty
-            for i in "${!colour_array[@]}"; do
-                [[ -z "${colour_array[i]}" ]] && colour_array[i]="${defaults[i]}"
+            for i in 0 1 2 3 4 5 6; do
+                if [[ ${colour_array[i]} =~ ^[0-9]{1,3}$ ]] && (( 10#${colour_array[i]} <= 255 )); then
+                    colour_array[i]=$((10#${colour_array[i]}))
+                else
+                    colour_array[i]=${defaults[i]}
+                fi
             done
             break
             ;;
@@ -61,11 +65,8 @@ while true; do
             confalert=1
             continue
             ;;
-    1|255)  # Cancel pressed or ESC
-            # fallback defaults if empty
-            for i in "${!colour_array[@]}"; do
-              [[ -z "${colour_array[i]}" ]] && colour_array[i]="${defaults[i]}"
-            done
+        1|255)  # Cancel or ESC: save all colours as their defaults
+            colour_array=("${defaults[@]}")
             break
             ;;
     esac

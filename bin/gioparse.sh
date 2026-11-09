@@ -266,3 +266,15 @@ CONFEOF
   chmod 775 "$CONFDIR/txt/giocoso.conf"
   parse_config
 fi
+
+# Display colours: any colour that is blank, or not a whole number from 0 to 255, gets its default.
+# Runs after the configuration file has been read (or written), so blanks in the file are caught too.
+for colourpair in HOTKEY:11 DRAWLINES:2 MAINTEXT:15 LOGO:6 INFOTEXT:11 SPINNER:12 ALERT:1; do
+  colourname=${colourpair%%:*}; colourvalue=${!colourname}
+  if [[ $colourvalue =~ ^[0-9]{1,3}$ ]] && (( 10#$colourvalue <= 255 )); then
+    printf -v "$colourname" '%d' "$((10#$colourvalue))"
+  else
+    printf -v "$colourname" '%s' "${colourpair#*:}"
+  fi
+done
+unset colourpair colourname colourvalue
