@@ -35,7 +35,7 @@ tput setaf $DRAWLINES; echo -e "┌───────────────
 │                                                                                                   │
 └───────────────────────────────────────────────────────────────────────────────────────────────────┘"
 tput cup  1 4; tput setaf $LOGOZ; echo -e "♬♪ Giocoso Music Player Installer ♬♪"
-tput cup  2 4; tput setaf $LOGOZ; echo -e "Copyright © H.Rogers $COPYRIGHT"
+tput cup  2 4; tput setaf $LOGOZ; echo -e "Copyright © H. Rogers $COPYRIGHT"
 tput cup  3 4; tput setaf $LOGOZ; echo -e "Version $PROGVERSION"
 }
 
