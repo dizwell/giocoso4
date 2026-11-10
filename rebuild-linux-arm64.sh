@@ -46,7 +46,7 @@ for tool in git make gcc awk sed grep curl tar g++; do
 done
 
 sudo apt-get update
-for package in autoconf automake libtool libtool-bin pkg-config nasm yasm libasound2-dev libpulse-dev libjpeg-dev libpng-dev libfreetype-dev; do
+for package in autoconf automake libtool libtool-bin pkg-config nasm yasm libasound2-dev libpulse-dev libjpeg-dev libpng-dev libfreetype-dev zlib1g-dev libbz2-dev libbrotli-dev; do
   if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q 'install ok installed'; then
     echo "Installing missing prerequisite: $package"
     sudo apt install -y "$package"
@@ -245,10 +245,12 @@ if ! grep -Fq 'MAGICK_LIB_VERSION_TEXT="bbritten-4.0.0"' configure; then
 fi
 
 echo "Configuring ImageMagick..."
-./configure --prefix="$PREFIX" --disable-installed --disable-shared --enable-static --without-perl --without-magick-plus-plus --without-bzlib --without-dps --without-djvu --without-fftw --without-flif --without-fpx --without-gslib --without-heic --without-jbig --without-jxl --without-lcms --without-lqr --without-lzma --without-openexr --without-openjp2 --without-pango --without-raw --without-rsvg --without-tiff --without-webp --without-zip --without-zstd --without-video --without-x --with-jpeg --with-png --with-freetype
+./configure PKG_CONFIG="pkg-config --static" --prefix="$PREFIX" --disable-installed --disable-shared --enable-static --disable-openmp --without-fontconfig --without-gvc --without-xml --without-perl --without-magick-plus-plus --without-bzlib --without-dps --without-djvu --without-fftw --without-flif --without-fpx --without-gslib --without-heic --without-jbig --without-jxl --without-lcms --without-lqr --without-lzma --without-openexr --without-openjp2 --without-pango --without-raw --without-rsvg --without-tiff --without-webp --without-zip --without-zstd --without-video --without-x --with-jpeg --with-png --with-freetype
 
 echo "Building ImageMagick..."
 make -j"$JOBS"
+rm -f utilities/magick
+make utilities/magick LDFLAGS=-all-static   # Fully static: depends on nothing on the system
 }
 
 function build_sixel {
