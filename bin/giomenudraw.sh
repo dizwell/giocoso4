@@ -48,7 +48,7 @@ echo -e "┌──────────────────────�
 │                                                                                                   │
 └───────────────────────────────────────────────────────────────────────────────────────────────────┘"
 tput cup 1 4; tput setaf $SPINNER; echo -en "♬♪ "; tput setaf $LOGO; echo -en "Giocoso: The Classical Music Player"; tput setaf $SPINNER; echo -en " ♬♪"
-tput cup 2 4; tput setaf $LOGO; echo "Copyright © H. Rogers 2021-2026, v$PROGVERSION"
+tput cup 2 4; tput setaf $LOGO; echo "Copyright © H. Rogers $COPYRIGHT, v$PROGVERSION"
 }
 
 function playing {
@@ -81,7 +81,7 @@ tput setaf $DRAWLINES; echo -e "┌───────────────
 │                                                                                                   │
 └───────────────────────────────────────────────────────────────────────────────────────────────────┘"
 tput cup 1 4; tput setaf $SPINNER; echo -en "♬♪ "; tput setaf $LOGO; echo -en "Giocoso: The Classical Music Player"; tput setaf $SPINNER; echo -en " ♬♪"
-tput cup 2 4; tput setaf $LOGO; echo "Copyright © H. Rogers 2021-2026, v$PROGVERSION"
+tput cup 2 4; tput setaf $LOGO; echo "Copyright © H. Rogers $COPYRIGHT, v$PROGVERSION"
 tput cup 3 4; tput setaf $LOGO; echo -en "Connected to $DISPLAYHOST"
 tput setaf $LOGO
 sixel_logo  
@@ -151,7 +151,7 @@ tput setaf $DRAWLINES; echo -e "┌───────────────
 │                                                                                                   │
 └───────────────────────────────────────────────────────────────────────────────────────────────────┘"
 tput cup  1 4; tput setaf $SPINNER; echo -en "♬♪ "; tput setaf $LOGO; echo -en "Giocoso: The Classical Music Player"; tput setaf $SPINNER; echo -en " ♬♪"
-tput cup  2 4; tput setaf $LOGO; echo "Copyright © H. Rogers 2021-2026, v$PROGVERSION"
+tput cup  2 4; tput setaf $LOGO; echo "Copyright © H. Rogers $COPYRIGHT, v$PROGVERSION"
 tput cup 3 4; tput setaf $LOGO; echo -en "Connected to $DISPLAYHOST"
 
 tput setaf $LOGO

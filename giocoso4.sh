@@ -5,7 +5,7 @@
 # Full documentation is available at:
 # https://bbritten.com/software/giocoso4
 #
-# Copyright © Howard Rogers 2021-2026
+# Copyright © H. Rogers 2019-2026
 # Version 4.00 - 30th December 2026 ?
 #
 # This program is free software: you can redistribute it and/or modify it under the
@@ -31,6 +31,7 @@
 # 
 # ==============================================================================================================
 DIRECT_PLAY=0 COUNTFLAC=0 PLAYS=1 SEARCHCOUNT=0 CONFDIR="$HOME/.local/share/giocoso4"
+COPYRIGHT="2019-2026"                             # Copyright years, shown on every screen that displays them
 
 function parse_config {
 source "$CONFDIR/bin/gioparse.sh"
