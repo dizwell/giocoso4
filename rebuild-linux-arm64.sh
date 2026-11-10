@@ -272,10 +272,12 @@ echo "Regenerating libsixel build files..."
 ./autogen.sh
 
 echo "Configuring libsixel..."
-./configure --prefix="$PREFIX" --disable-shared --enable-static --disable-python --without-libcurl --without-gd --without-gdk-pixbuf2 --with-jpeg --with-png
+./configure --prefix="$PREFIX" --disable-shared --enable-static --disable-python --without-libcurl --without-gd --without-gdk-pixbuf2 --without-jpeg --without-png   # libsixel's own JPG/PNG reader: no JPEG or PNG libraries needed
 
 echo "Building img2sixel..."
-make -j"$JOBS"
+make -j"$JOBS" -C src
+rm -f converters/img2sixel
+make -C converters LDFLAGS=-all-static img2sixel   # Fully static: depends on nothing on the system
 }
 
 function validate {

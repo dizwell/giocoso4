@@ -78,6 +78,11 @@ else
   echo -e "\n$captiontext" > "$CONFDIR/txt/caption.txt"
 fi
 
+# If the album art is internally CMYK, convert it to sRGB, because CMYK files can't be displayed by img2sixel
+if [[ $($MAGICK identify -format "%[colorspace]" "$CONFDIR/art/albumart.jpg" 2>/dev/null) == "CMYK" ]]; then
+  $MAGICK "$CONFDIR/art/albumart.jpg" -colorspace sRGB "$CONFDIR/art/albumart.jpg" 2>/dev/null
+fi
+
 # Analyze the album art to arrive at a caption panel background colour
 ALBUMCAPTION=$(cat "$CONFDIR/txt/caption.txt")
 
