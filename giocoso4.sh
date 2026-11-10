@@ -31,7 +31,6 @@
 # 
 # ==============================================================================================================
 DIRECT_PLAY=0 COUNTFLAC=0 PLAYS=1 SEARCHCOUNT=0 CONFDIR="$HOME/.local/share/giocoso4"
-COPYRIGHT="2019-2026"                             # Copyright years, shown on every screen that displays them
 
 function parse_config {
 source "$CONFDIR/bin/gioparse.sh"
