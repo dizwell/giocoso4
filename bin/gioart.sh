@@ -13,15 +13,19 @@
 
 displaycomp="$1"
 displaywork="$2"
-# Giocoso's magick has no fontconfig, so the caption font is passed as a font file, not a font name
-if [[ $OSFAMILY != "MACOS" ]]; then 
-  captionfont=$(fc-list -f '%{file}\n' ':family=Libre Baskerville:style=Regular' | head -1)
-  if [[ -z $captionfont ]]; then captionfont=$(fc-list -f '%{file}\n' ':family=Liberation Serif:style=Regular' | head -1); fi
-  if [[ -z $captionfont ]]; then captionfont=$(fc-match -f '%{file}' 'Courier'); fi
-elif [[ $OSFAMILY == "MACOS" ]]; then
-  for captionfont in /System/Library/Fonts/Palatino.ttc /System/Library/Fonts/Supplemental/Palatino.ttc; do
-    [[ -f $captionfont ]] && break
-  done
+# Giocoso's magick has no fontconfig, so the caption font is passed as a font file, not a font name.
+# Libre Baskerville first (Giocoso supplies its own copy), then Palatino on a Mac, or Liberation Serif/Courier on Linux
+captionfont="$CONFDIR/art/LibreBaskerville-Regular.ttf"
+if [[ ! -f $captionfont ]]; then
+  if [[ $OSFAMILY == "MACOS" ]]; then
+    for captionfont in /System/Library/Fonts/Palatino.ttc /System/Library/Fonts/Supplemental/Palatino.ttc; do
+      [[ -f $captionfont ]] && break
+    done
+  else
+    captionfont=$(fc-list -f '%{file}\n' ':family=Libre Baskerville:style=Regular' | head -1)
+    if [[ -z $captionfont ]]; then captionfont=$(fc-list -f '%{file}\n' ':family=Liberation Serif:style=Regular' | head -1); fi
+    if [[ -z $captionfont ]]; then captionfont=$(fc-match -f '%{file}' 'Courier'); fi
+  fi
 fi
 
 function hextorgb {
