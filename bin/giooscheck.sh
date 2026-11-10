@@ -5,6 +5,7 @@
 # prerequisites are present.
 #
 ####################################################################
+COPYRIGHT="2019-2026"                             # Copyright years, used by every screen that displays them (set here, as bin/ is always current)
 pending=0
 
 # If we're not running at least version 4.2 of Bash, all our maths break!
