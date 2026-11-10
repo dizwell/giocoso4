@@ -205,19 +205,29 @@ fi
 # keeps the double quotes literal, so no escaping is needed (and WEZTHEME no longer
 # needs special treatment).
 # ====================================================================
+# Keep the colours already chosen (via the colour picker): read each from the existing file, falling back
+# to its default if missing or not a whole number from 0 to 255
+# ====================================================================
+for colourpair in HOTKEY:11 DRAWLINES:2 MAINTEXT:15 LOGO:6 INFOTEXT:11 SPINNER:12 ALERT:1; do
+  colname="${colourpair%%:*}"; coldefault="${colourpair##*:}"
+  colvalue=$($GREPPROG -i -m1 "^$colname=" "$CONFFILE" 2>/dev/null | $SEDPROG -e "s/^[^=]*=//" -e "s/[[:space:]]*$//")
+  if ! [[ $colvalue =~ ^[0-9]+$ && $colvalue -le 255 ]]; then colvalue=$coldefault; fi
+  printf -v "KEEP_$colname" "%s" "$colvalue"
+done
+
 cat > "$CONFDIR/txt/giocoso.conf" <<CONFEOF
 # New Giocoso Configuration File, created $(date)
 # ====================================================================
 
 # Colour Constants (alter at your peril!)
 # ====================================================================
-HOTKEY=11
-DRAWLINES=2
-MAINTEXT=15
-LOGO=6
-INFOTEXT=11
-SPINNER=12
-ALERT=1
+HOTKEY=$KEEP_HOTKEY
+DRAWLINES=$KEEP_DRAWLINES
+MAINTEXT=$KEEP_MAINTEXT
+LOGO=$KEEP_LOGO
+INFOTEXT=$KEEP_INFOTEXT
+SPINNER=$KEEP_SPINNER
+ALERT=$KEEP_ALERT
 
 # Parameters requiring text entries (double-quoted, since values may contain spaces)
 # ====================================================================
