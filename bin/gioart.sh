@@ -13,16 +13,15 @@
 
 displaycomp="$1"
 displaywork="$2"
+# Giocoso's magick has no fontconfig, so the caption font is passed as a font file, not a font name
 if [[ $OSFAMILY != "MACOS" ]]; then 
-  if [[ $(fc-list | $GREPPROG Baskerville | wc -l) -gt 0 ]]; then
-    captionfont="Libre-Baskerville"
-  elif [[ $(fc-list | $GREPPROG Liberation | wc -l) -gt 0 ]]; then
-    captionfont="Liberation-Serif"
-  else
-    captionfont="Courier"
-  fi
+  captionfont=$(fc-list -f '%{file}\n' ':family=Libre Baskerville:style=Regular' | head -1)
+  if [[ -z $captionfont ]]; then captionfont=$(fc-list -f '%{file}\n' ':family=Liberation Serif:style=Regular' | head -1); fi
+  if [[ -z $captionfont ]]; then captionfont=$(fc-match -f '%{file}' 'Courier'); fi
 elif [[ $OSFAMILY == "MACOS" ]]; then
-  captionfont="Palatino"
+  for captionfont in /System/Library/Fonts/Palatino.ttc /System/Library/Fonts/Supplemental/Palatino.ttc; do
+    [[ -f $captionfont ]] && break
+  done
 fi
 
 function hextorgb {
