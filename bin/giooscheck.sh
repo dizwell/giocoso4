@@ -56,7 +56,7 @@ if [[ $pending -gt 0 ]]; then
         * ) 
           echo "    Exiting script. Please update your system manually."
           reset
-          rm -f gio4inst
+          rm -f "$INSTALLERFILE"
           exit 1
           ;;
    esac
@@ -453,7 +453,7 @@ case $OSFAMILY in
   VOID)
   if [[ $CHECKONLY -eq 0 ]]; then
     if ! sudo -n true 2>/dev/null; then
-      sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f gio4inst; exit 1; }
+      sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }
     fi
 
     # Keep sudo status for as long as needed
@@ -502,7 +502,7 @@ case $OSFAMILY in
   ARCH)
   if [[ $CHECKONLY -eq 0 ]]; then
     if ! sudo -n true 2>/dev/null; then
-      sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f gio4inst; exit 1; }
+      sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }
     fi
 
     # Keep sudo status for as long as needed
@@ -559,7 +559,7 @@ case $OSFAMILY in
     fi
 
     if ! sudo -n true 2>/dev/null; then
-      sudo -p $'\r    Now supply the sudo password for user %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f gio4inst; exit 1; }
+      sudo -p $'\r    Now supply the sudo password for user %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }
     fi
 
     # Keep sudo status for as long as needed
@@ -617,7 +617,7 @@ case $OSFAMILY in
     fi
 
     if ! sudo -n true 2>/dev/null; then
-      sudo -p $'\r    Now supply the sudo password for user %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f gio4inst; exit 1; }
+      sudo -p $'\r    Now supply the sudo password for user %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }
     fi
 
     # Keep sudo status for as long as needed
@@ -662,7 +662,7 @@ case $OSFAMILY in
   UBUNTU)
   if [[ $CHECKONLY -eq 0 ]]; then
     if ! sudo -n true 2>/dev/null; then
-      sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f gio4inst; exit 1; }
+      sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }
     fi
 
     # Keep sudo status for as long as needed
@@ -710,7 +710,7 @@ case $OSFAMILY in
   FEDORA)
   if [[ $CHECKONLY -eq 0 ]]; then
     if ! sudo -n true 2>/dev/null; then
-      sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f gio4inst; exit 1; }
+      sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }
     fi
 
     # Keep sudo status for as long as needed
@@ -763,7 +763,7 @@ case $OSFAMILY in
   RHEL)
   if [[ $CHECKONLY -eq 0 ]]; then
     if ! sudo -n true 2>/dev/null; then
-      sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f gio4inst; exit 1; }
+      sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }
     fi
 
     # Keep sudo status for as long as needed
@@ -824,7 +824,7 @@ case $OSFAMILY in
   MACOS)
   if [[ $CHECKONLY -eq 0 ]]; then
     if ! sudo -n true 2>/dev/null; then
-      sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f gio4inst; exit 1; }
+      sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }
     fi
 
     # Keep sudo status for as long as needed
