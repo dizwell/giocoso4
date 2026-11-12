@@ -134,7 +134,7 @@ esac
 function wait_for_db {
 # MariaDB takes a few seconds to accept connections after it is (re)started: wait for it, for up to a minute
 local waited=0
-until sudo mariadb -e "select 1;" >/dev/null 2>&1; do
+until ${SUDODB-sudo} mariadb -e "select 1;" >/dev/null 2>&1; do
   sleep 1
   waited=$((waited + 1))
   if [[ $waited -ge 60 ]]; then
@@ -165,31 +165,40 @@ if [[ $GIOSERVER == "yes" ]]; then
   IFS=. read -r m1 m2 m3 m4 <<< "$NETMASK"
   
   NETWORK="$((i1 & m1)).$((i2 & m2)).$((i3 & m3)).$((i4 & m4))"
+
+  # On a Homebrew Mac, MariaDB's files belong to the user and Homebrew makes the user a database administrator,
+  # so the database is set up without sudo (Homebrew's long installs can leave sudo asking for the password again)
+  if [[ $OS == "DARWIN" && $pkgmanager == "homebrew" ]]; then SUDODB=""; else SUDODB="sudo"; fi
   	
-  if sudo mariadb -e "use giocoso4" 2>/dev/null; then    
+  if ${SUDODB-sudo} mariadb -e "use giocoso4" 2>/dev/null; then    
     :  # If giocoso4 is present, there's no need to configure/initialise MariaDB: it already has been
   else    
     # Which configuration file specifies bind address?
-    MYCNF=$(mysqld --verbose --help 2>/dev/null | awk '/Default options are read from the following files/{getline; print $1; exit}')
+    # (On Homebrew, use Homebrew's own configuration file, which belongs to the user, not the system-wide /etc/my.cnf)
+    if [[ -z $SUDODB ]]; then
+      MYCNF="$(brew --prefix)/etc/my.cnf"
+    else
+      MYCNF=$(mysqld --verbose --help 2>/dev/null | awk '/Default options are read from the following files/{getline; print $1; exit}')
+    fi
   
     # Now determine if a bind-address is already set in that file. If yes, leave it alone. If not, append one.
 	# If we append, we set it to 0.0.0.0, meaning 'listen for any connection requests coming from any and all
 	# network interfaces.
     if ! grep -qE '^[[:space:]]*bind-address[[:space:]]*=' "$MYCNF" 2>/dev/null; then
-      echo "" | sudo tee -a "$MYCNF" >/dev/null
-      echo "[mysqld]" | sudo tee -a "$MYCNF" >/dev/null
-      echo "bind-address = 0.0.0.0" | sudo tee -a "$MYCNF" >/dev/null
+      echo "" | ${SUDODB-sudo} tee -a "$MYCNF" >/dev/null
+      echo "[mysqld]" | ${SUDODB-sudo} tee -a "$MYCNF" >/dev/null
+      echo "bind-address = 0.0.0.0" | ${SUDODB-sudo} tee -a "$MYCNF" >/dev/null
     fi
   
     if [[ $OS == "DARWIN" && $pkgmanager == "homebrew" ]]; then
       # Stop MariaDB and wait until it really has stopped (Homebrew returns before it has), then start it again
       # and wait until it really is responding. Otherwise the old server can answer and then vanish mid-setup.
       brew services stop mariadb@11.4 >/dev/null 2>&1
-      for i in {1..60}; do sudo mariadb -e "select 1;" >/dev/null 2>&1 || break; sleep 1; done
+      for i in {1..60}; do ${SUDODB-sudo} mariadb -e "select 1;" >/dev/null 2>&1 || break; sleep 1; done
       brew services start mariadb@11.4 >/dev/null 2>&1
       wait_for_db || return 1
       # Now initialise the database
-	  sudo mariadb >/dev/null 2>&1 <<'EOF' 
+	  ${SUDODB-sudo} mariadb >/dev/null 2>&1 <<'EOF' 
 	  DELETE FROM mysql.global_priv
 	  WHERE User='';
 
@@ -206,7 +215,7 @@ if [[ $GIOSERVER == "yes" ]]; then
 	  FLUSH PRIVILEGES;
 EOF
     elif [[ $OS == "DARWIN" && $pkgmanager == "macports" ]]; then
-	  echo "skip-networking=0" | sudo tee -a "$MYCNF" >/dev/null 2>&1
+	  echo "skip-networking=0" | ${SUDODB-sudo} tee -a "$MYCNF" >/dev/null 2>&1
   	  prefix="/opt/local"
   	  sudo mkdir -p ${prefix}/var/db/mariadb-11.4 >/dev/null 2>&1
   	  sudo chown _mysql:_mysql ${prefix}/var/db/mariadb-11.4 >/dev/null 2>&1
@@ -215,12 +224,12 @@ EOF
       sudo port load mariadb-11.4-server >/dev/null 2>&1
 	  sudo ln -sf "/opt/local/bin/mysql" "/opt/local/bin/mariadb" >/dev/null 2>&1>/dev/null 2>&1
 	  
-	  until sudo mariadb -e "select 1;" >/dev/null 2>&1; do
+	  until ${SUDODB-sudo} mariadb -e "select 1;" >/dev/null 2>&1; do
 		  echo "Sleeping 1" >/dev/null 2>&1
 		sleep 1
 	  done
 	  
-	  sudo mariadb >/dev/null 2>&1 <<'EOF' 
+	  ${SUDODB-sudo} mariadb >/dev/null 2>&1 <<'EOF' 
 	  DELETE FROM mysql.global_priv
 	  WHERE User='';
 
@@ -240,7 +249,7 @@ EOF
       sudo systemctl restart mariadb.service
       wait_for_db || return 1
       # Now initialise the database
-	  sudo mariadb >/dev/null 2>&1 <<'EOF' 
+	  ${SUDODB-sudo} mariadb >/dev/null 2>&1 <<'EOF' 
 	  DELETE FROM mysql.global_priv
 	  WHERE User='';
 
@@ -265,13 +274,13 @@ function create_db {
 if [[ $GIOSERVER == "yes" ]]; then
   # Create the giocoso4 database and user, provided it doesn't already exist  
   wait_for_db || return 1
-  if ! sudo mariadb -e "use giocoso4" 2>/dev/null; then
-    sudo mariadb -e  "create database giocoso4 character set = 'utf8mb4' collate = 'utf8mb4_general_ci'"
-    sudo mariadb -e  "create user 'giocoso4'@'localhost' identified by 'giocoso4'"
-    sudo mariadb -e  "create user 'giocoso4'@'$NETWORK/$NETMASK' identified by 'giocoso4'"
-    sudo mariadb -e  "grant all on *.* to 'giocoso4'@'localhost'"
-    sudo mariadb -e  "grant all on *.* to 'giocoso4'@'$NETWORK/$NETMASK'"
-    sudo mariadb -e  "flush privileges"
+  if ! ${SUDODB-sudo} mariadb -e "use giocoso4" 2>/dev/null; then
+    ${SUDODB-sudo} mariadb -e  "create database giocoso4 character set = 'utf8mb4' collate = 'utf8mb4_general_ci'"
+    ${SUDODB-sudo} mariadb -e  "create user 'giocoso4'@'localhost' identified by 'giocoso4'"
+    ${SUDODB-sudo} mariadb -e  "create user 'giocoso4'@'$NETWORK/$NETMASK' identified by 'giocoso4'"
+    ${SUDODB-sudo} mariadb -e  "grant all on *.* to 'giocoso4'@'localhost'"
+    ${SUDODB-sudo} mariadb -e  "grant all on *.* to 'giocoso4'@'$NETWORK/$NETMASK'"
+    ${SUDODB-sudo} mariadb -e  "flush privileges"
   fi
 
   # Now create the table structures
