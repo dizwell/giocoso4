@@ -226,6 +226,15 @@ cmake -S freetype -B freetype/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_P
   -DBUILD_SHARED_LIBS=OFF -DFT_DISABLE_BZIP2=ON -DFT_DISABLE_PNG=ON -DFT_DISABLE_HARFBUZZ=ON -DFT_DISABLE_BROTLI=ON -DFT_DISABLE_HVF=ON >/dev/null
 cmake --build freetype/build -j"$JOBS" >/dev/null
 cmake --install freetype/build >/dev/null
+
+# zlib comes from MacOS itself. This entry makes pkg-config say so, rather than finding MacPorts' or Homebrew's copy.
+cat > "$LIBS_DIR/lib/pkgconfig/zlib.pc" <<'ZLIBPC'
+Name: zlib
+Description: MacOS's own zlib
+Version: 1.2.12
+Libs: -lz
+Cflags:
+ZLIBPC
 }
 
 function build_magick {
@@ -270,7 +279,7 @@ if ! grep -Fq 'MAGICK_LIB_VERSION_TEXT="bbritten-4.0.0"' configure; then
 fi
 
 echo "Configuring ImageMagick..."
-PKG_CONFIG_PATH="$LIBS_DIR/lib/pkgconfig" ./configure PKG_CONFIG="pkg-config --static" CPPFLAGS="-I$LIBS_DIR/include" LDFLAGS="-L$LIBS_DIR/lib" --prefix="$PREFIX" --disable-installed --disable-shared --enable-static --disable-openmp --without-fontconfig --without-gvc --without-xml --without-perl --without-magick-plus-plus --without-bzlib --without-dps --without-djvu --without-fftw --without-flif --without-fpx --without-gslib --without-heic --without-jbig --without-jxl --without-lcms --without-lqr --without-lzma --without-openexr --without-openjp2 --without-pango --without-raw --without-rsvg --without-tiff --without-webp --without-zip --without-zstd --without-video --without-x --with-jpeg --with-png --with-freetype
+PKG_CONFIG_LIBDIR="$LIBS_DIR/lib/pkgconfig" ./configure PKG_CONFIG="pkg-config --static" CPPFLAGS="-I$LIBS_DIR/include" LDFLAGS="-L$LIBS_DIR/lib" --prefix="$PREFIX" --disable-installed --disable-shared --enable-static --disable-openmp --without-fontconfig --without-gvc --without-xml --without-perl --without-magick-plus-plus --without-bzlib --without-dps --without-djvu --without-fftw --without-flif --without-fpx --without-gslib --without-heic --without-jbig --without-jxl --without-lcms --without-lqr --without-lzma --without-openexr --without-openjp2 --without-pango --without-raw --without-rsvg --without-tiff --without-webp --without-zip --without-zstd --without-video --without-x --with-jpeg --with-png --with-freetype
 
 echo "Building ImageMagick..."
 make -j"$JOBS"
