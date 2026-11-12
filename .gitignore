@@ -33,3 +33,9 @@
 /txt/topcomposers.html
 /txt/underplayed_composers.txt
 /txt/underplayedcomposers.html
+
+# Made on each computer: current album art, and the small menu logos at the configured size
+/art/albumart.jpg
+/art/nowplaying.jpg
+/art/giocosoicosmall.png
+/art/giocosoicosmallbeta.png
