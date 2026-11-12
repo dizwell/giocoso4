@@ -17,7 +17,7 @@ fi
 
 if [[ -z $LOGOZ ]]; then
   LOGOZ=6
-  MAINTEXT=15
+  MAINTEXT=11
   DRAWLINES=2
 fi
 
@@ -44,8 +44,9 @@ function check_updates {
 if [[ $pending -gt 0 ]]; then
   print_header
   tput cup 6 4; tput setaf $ALERT; echo "!! You have pending OS software updates !!"
-  tput cup 8 4; tput setaf $MAINTEXT; echo "Do you want to quit the current installation and apply them yourself, or do you wish to proceed with installing Giocoso regardless? [q/p] " | fold -s -w 76 | sed '2,$s/^/    /'
+  tput cup 8 4; tput setaf ${ALERT:-1}; echo "Do you want to quit the current installation and apply them yourself, or do you wish to proceed with installing Giocoso regardless? [q/p] " | fold -s -w 76 | sed '2,$s/^/    /'
   read -s -n 1 choice
+  tput setaf ${MAINTEXT:-11}
   
   # Default to 'q' if the user just presses Enter, or if they type 'q'/'Q'
   case "${choice:-q}" in
@@ -450,7 +451,7 @@ case $OSFAMILY in
   VOID)
   if [[ $CHECKONLY -eq 0 ]]; then
     if ! sudo -n true 2>/dev/null; then
-      sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }
+      tput setaf ${ALERT:-1}; sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }; tput setaf ${MAINTEXT:-11}
     fi
 
     # Keep sudo status for as long as needed
@@ -499,7 +500,7 @@ case $OSFAMILY in
   ARCH)
   if [[ $CHECKONLY -eq 0 ]]; then
     if ! sudo -n true 2>/dev/null; then
-      sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }
+      tput setaf ${ALERT:-1}; sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }; tput setaf ${MAINTEXT:-11}
     fi
 
     # Keep sudo status for as long as needed
@@ -556,7 +557,7 @@ case $OSFAMILY in
     fi
 
     if ! sudo -n true 2>/dev/null; then
-      sudo -p $'\r    Now supply the sudo password for user %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }
+      tput setaf ${ALERT:-1}; sudo -p $'\r    Now supply the sudo password for user %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }; tput setaf ${MAINTEXT:-11}
     fi
 
     # Keep sudo status for as long as needed
@@ -614,7 +615,7 @@ case $OSFAMILY in
     fi
 
     if ! sudo -n true 2>/dev/null; then
-      sudo -p $'\r    Now supply the sudo password for user %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }
+      tput setaf ${ALERT:-1}; sudo -p $'\r    Now supply the sudo password for user %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }; tput setaf ${MAINTEXT:-11}
     fi
 
     # Keep sudo status for as long as needed
@@ -659,7 +660,7 @@ case $OSFAMILY in
   UBUNTU)
   if [[ $CHECKONLY -eq 0 ]]; then
     if ! sudo -n true 2>/dev/null; then
-      sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }
+      tput setaf ${ALERT:-1}; sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }; tput setaf ${MAINTEXT:-11}
     fi
 
     # Keep sudo status for as long as needed
@@ -707,7 +708,7 @@ case $OSFAMILY in
   FEDORA)
   if [[ $CHECKONLY -eq 0 ]]; then
     if ! sudo -n true 2>/dev/null; then
-      sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }
+      tput setaf ${ALERT:-1}; sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }; tput setaf ${MAINTEXT:-11}
     fi
 
     # Keep sudo status for as long as needed
@@ -760,7 +761,7 @@ case $OSFAMILY in
   RHEL)
   if [[ $CHECKONLY -eq 0 ]]; then
     if ! sudo -n true 2>/dev/null; then
-      sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }
+      tput setaf ${ALERT:-1}; sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }; tput setaf ${MAINTEXT:-11}
     fi
 
     # Keep sudo status for as long as needed
@@ -821,7 +822,7 @@ case $OSFAMILY in
   MACOS)
   if [[ $CHECKONLY -eq 0 ]]; then
     if ! sudo -n true 2>/dev/null; then
-      sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }
+      tput setaf ${ALERT:-1}; sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }; tput setaf ${MAINTEXT:-11}
     fi
 
     # Keep sudo status for as long as needed
@@ -844,7 +845,7 @@ case $OSFAMILY in
       echo "    to that one now. If you have a free choice, choose Macports for older machines"
       echo "    and for the fact that it's *much* faster to complete!"
       echo ""
-      read -n 1 -p "    Homebrew or Macports, then? (h/m): " input
+      tput setaf ${ALERT:-1}; read -n 1 -p "    Homebrew or Macports, then? (h/m): " input; tput setaf ${MAINTEXT:-11}
       case "$input" in
        [hH])
          if command -v brew >/dev/null 2>&1; then
