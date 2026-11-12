@@ -253,7 +253,7 @@ FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" 2>/dev/null | $GREPPR
       5 ) if [[ ! -d "$CONFDIR/tmp" ]]; then mkdir -p "$CONFDIR/tmp"; fi
           if [[ ! -s "$CONFDIR/tmp/license.txt" ]]; then
             for attempt in {1..5}; do
-              if wget -q --tries=1 "https://bbritten.com/software/giocoso4/gpl-v2.0.txt" -O "$CONFDIR/tmp/license.txt" && [[ -s "$CONFDIR/tmp/license.txt" ]]; then
+              if wget -q --tries=1 "https://raw.githubusercontent.com/dizwell/giocoso4/main/gpl-v2.0.txt" -O "$CONFDIR/tmp/license.txt" && [[ -s "$CONFDIR/tmp/license.txt" ]]; then
                 break
               fi
               sleep 1

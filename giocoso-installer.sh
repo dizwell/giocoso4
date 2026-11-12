@@ -29,9 +29,9 @@ while getopts "v:d:" opt; do
 done
 
 if [[ $GIORELEASE == "beta" ]]; then 
-  REMOTESOURCE="https://bbritten.com/software/giocoso4beta"
+  REMOTESOURCE="https://raw.githubusercontent.com/dizwell/giocoso4/beta"   # Everything is fetched from GitHub: beta branch (work in progress)...
 else
-  REMOTESOURCE="https://bbritten.com/software/giocoso4"
+  REMOTESOURCE="https://raw.githubusercontent.com/dizwell/giocoso4/main"   # ...or main (releases)
 fi
 
 function exit_program {
