@@ -234,7 +234,7 @@ if [[ -f ffbuild/config.mak ]]; then
 fi
 
 echo "Configuring FFmpeg..."
-PKG_CONFIG_PATH="$AUDIO_DIR/lib/pkgconfig" ./configure --prefix="$PREFIX" --bindir="$PREFIX/bin" --disable-everything --enable-ffmpeg --enable-ffprobe --disable-ffplay --disable-sdl2 --disable-iconv --enable-static --disable-shared --disable-doc --disable-network --enable-protocol=file,pipe --enable-demuxer=concat,flac,ape,mov,mp3,ogg,asf,wav,aiff,dsf --enable-decoder=flac,ape,aac,alac,mp3,mp3float,vorbis,opus,wmav1,wmav2,wmapro,wmalossless,'pcm*',dsd_lsbf,dsd_msbf,dsd_lsbf_planar,dsd_msbf_planar,mjpeg,png --enable-parser=flac,mpegaudio,aac,vorbis,opus,mjpeg,png --enable-encoder=flac,libmp3lame,libvorbis,wmav2,pcm_s16le,pcm_s24le,pcm_s32le,pcm_s16be,pcm_s24be,pcm_s32be,png --enable-muxer=flac,mp3,ogg,asf,wav,aiff,md5,null,image2 --enable-filter=adelay,volume,volumedetect,aresample,aformat,lowpass,showspectrumpic,scale,format --enable-libmp3lame --enable-libvorbis --extra-cflags="-I$AUDIO_DIR/include" --extra-ldflags="-L$AUDIO_DIR/lib" --extra-libs="-lvorbis -logg -lm" --enable-outdev=alsa,pulse --disable-version-tracking
+PKG_CONFIG_PATH="$AUDIO_DIR/lib/pkgconfig" ./configure --prefix="$PREFIX" --bindir="$PREFIX/bin" --disable-everything --enable-ffmpeg --enable-ffprobe --disable-ffplay --disable-sdl2 --disable-iconv --enable-static --disable-shared --disable-doc --disable-network --enable-protocol=file,pipe --enable-demuxer=concat,flac,ape,mov,mp3,ogg,asf,wav,aiff,dsf --enable-decoder=flac,ape,aac,alac,mp3,mp3float,vorbis,opus,wmav1,wmav2,wmapro,wmalossless,'pcm*',dsd_lsbf,dsd_msbf,dsd_lsbf_planar,dsd_msbf_planar,mjpeg,png --enable-parser=flac,mpegaudio,aac,vorbis,opus,mjpeg,png --enable-encoder=flac,libmp3lame,libvorbis,wmav2,pcm_s16le,pcm_s24le,pcm_s32le,pcm_s16be,pcm_s24be,pcm_s32be,png --enable-muxer=flac,mp3,ogg,asf,wav,aiff,md5,null,image2 --enable-filter=adelay,volume,volumedetect,aresample,aformat,lowpass,showspectrumpic,scale,format --enable-libmp3lame --enable-libvorbis --enable-libpulse --extra-cflags="-I$AUDIO_DIR/include" --extra-ldflags="-L$AUDIO_DIR/lib" --extra-libs="-lvorbis -logg -lm" --enable-outdev=alsa,pulse --disable-version-tracking
 
 echo "Building FFmpeg and ffprobe..."
 make -j"$JOBS"
@@ -347,6 +347,7 @@ echo "=== Rebuilt versions ==="
 if "$BIN_DIR/ffmpeg-linux-x86_64" -version | grep -Fq "version $VERSION_STRING" &&
   "$BIN_DIR/ffmpeg-linux-x86_64" -hide_banner -encoders | grep -q libmp3lame &&
   "$BIN_DIR/ffmpeg-linux-x86_64" -hide_banner -encoders | grep -q libvorbis &&
+  "$BIN_DIR/ffmpeg-linux-x86_64" -hide_banner -devices 2>/dev/null | grep -q pulse &&
   "$BIN_DIR/ffprobe-linux-x86_64" -version | grep -Fq "version $VERSION_STRING" &&
   "$BIN_DIR/flac-linux-x86_64" --version | grep -Fq "flac $VERSION_STRING" &&
   "$BIN_DIR/metaflac-linux-x86_64" --version | grep -Fq "metaflac $VERSION_STRING" &&
