@@ -131,17 +131,26 @@ case "$OSFAMILY" in
 esac
 }
 
+function dblog {
+# TEMPORARY diagnostics: record database-setup events, with the time, in txt/dbsetup-log.txt
+echo "$(date +%H:%M:%S) $*" >> "$CONFDIR/txt/dbsetup-log.txt"
+}
+
 function wait_for_db {
 # MariaDB takes a few seconds to accept connections after it is (re)started: wait for it, for up to a minute
 local waited=0
-until sudo mariadb -e "select 1;" >/dev/null 2>&1; do
+dblog "wait_for_db: starting"
+until sudo mariadb -e "select 1;" >>"$CONFDIR/txt/dbsetup-log.txt" 2>&1; do
+  dblog "wait_for_db: not responding yet ($waited s)"
   sleep 1
   waited=$((waited + 1))
   if [[ $waited -ge 60 ]]; then
     dialog --title " Database Not Responding " --msgbox "\\nMariaDB has not started responding after a minute, so Giocoso's database could not be created.\\n\\nRe-run the installer once MariaDB is running." 12 70
+    dblog "wait_for_db: gave up after 60 s"
     return 1
   fi
 done
+dblog "wait_for_db: responding after $waited s"
 }
 
 function initialise_db {	
@@ -166,6 +175,7 @@ if [[ $GIOSERVER == "yes" ]]; then
   
   NETWORK="$((i1 & m1)).$((i2 & m2)).$((i3 & m3)).$((i4 & m4))"
   	
+  dblog "initialise_db: GIOSERVER=$GIOSERVER OS=$OS pkgmanager=$pkgmanager NETWORK=$NETWORK NETMASK=$NETMASK"
   if sudo mariadb -e "use giocoso4" 2>/dev/null; then    
     :  # If giocoso4 is present, there's no need to configure/initialise MariaDB: it already has been
   else    
@@ -184,9 +194,11 @@ if [[ $GIOSERVER == "yes" ]]; then
     if [[ $OS == "DARWIN" && $pkgmanager == "homebrew" ]]; then
       # Stop MariaDB and wait until it really has stopped (Homebrew returns before it has), then start it again
       # and wait until it really is responding. Otherwise the old server can answer and then vanish mid-setup.
-      brew services stop mariadb@11.4 >/dev/null 2>&1
+      dblog "brew services stop"
+      brew services stop mariadb@11.4 >>"$CONFDIR/txt/dbsetup-log.txt" 2>&1
       for i in {1..60}; do sudo mariadb -e "select 1;" >/dev/null 2>&1 || break; sleep 1; done
-      brew services start mariadb@11.4 >/dev/null 2>&1
+      dblog "stopped after about $i s; brew services start"
+      brew services start mariadb@11.4 >>"$CONFDIR/txt/dbsetup-log.txt" 2>&1
       wait_for_db || return 1
       # Now initialise the database
 	  sudo mariadb >/dev/null 2>&1 <<'EOF' 
@@ -266,12 +278,12 @@ if [[ $GIOSERVER == "yes" ]]; then
   # Create the giocoso4 database and user, provided it doesn't already exist  
   wait_for_db || return 1
   if ! sudo mariadb -e "use giocoso4" 2>/dev/null; then
-    sudo mariadb -e  "create database giocoso4 character set = 'utf8mb4' collate = 'utf8mb4_general_ci'"
-    sudo mariadb -e  "create user 'giocoso4'@'localhost' identified by 'giocoso4'"
-    sudo mariadb -e  "create user 'giocoso4'@'$NETWORK/$NETMASK' identified by 'giocoso4'"
-    sudo mariadb -e  "grant all on *.* to 'giocoso4'@'localhost'"
-    sudo mariadb -e  "grant all on *.* to 'giocoso4'@'$NETWORK/$NETMASK'"
-    sudo mariadb -e  "flush privileges"
+    dblog "create_db: create database"; sudo mariadb -e  "create database giocoso4 character set = 'utf8mb4' collate = 'utf8mb4_general_ci'" >>"$CONFDIR/txt/dbsetup-log.txt" 2>&1
+    dblog "create_db: create user localhost"; sudo mariadb -e  "create user 'giocoso4'@'localhost' identified by 'giocoso4'" >>"$CONFDIR/txt/dbsetup-log.txt" 2>&1
+    dblog "create_db: create user network"; sudo mariadb -e  "create user 'giocoso4'@'$NETWORK/$NETMASK' identified by 'giocoso4'" >>"$CONFDIR/txt/dbsetup-log.txt" 2>&1
+    dblog "create_db: grant localhost"; sudo mariadb -e  "grant all on *.* to 'giocoso4'@'localhost'" >>"$CONFDIR/txt/dbsetup-log.txt" 2>&1
+    dblog "create_db: grant network"; sudo mariadb -e  "grant all on *.* to 'giocoso4'@'$NETWORK/$NETMASK'" >>"$CONFDIR/txt/dbsetup-log.txt" 2>&1
+    dblog "create_db: flush"; sudo mariadb -e  "flush privileges" >>"$CONFDIR/txt/dbsetup-log.txt" 2>&1
   fi
 
   # Now create the table structures
