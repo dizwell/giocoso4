@@ -485,7 +485,7 @@ case $OSFAMILY in
     determine_role
 	
     # Define what's required
-    packages=(alsa-utils bc espeak-ng fd fontconfig gawk grep nano ncurses w3m wezterm)
+    packages=(alsa-utils bc espeak-ng fd fontconfig gawk grep nano ncurses w3m wezterm libpulseaudio)
     total=${#packages[@]}
     count=0
 
@@ -533,7 +533,7 @@ case $OSFAMILY in
     sudo pacman -S --noconfirm dialog > /dev/null 2>&1
     determine_role
     # Define what's required
-    packages=(alsa-utils bc espeak-ng fd fontconfig gawk grep nano ncurses w3m wezterm)
+    packages=(alsa-utils bc espeak-ng fd fontconfig gawk grep nano ncurses w3m wezterm libpulse)
     total=${#packages[@]}
     count=0
 
@@ -591,7 +591,7 @@ case $OSFAMILY in
     determine_role
 	
     # Define what's required
-    packages=(alsa-utils bc coreutils espeak-ng fd-find fontconfig gawk grep libncurses6 nano w3m wezterm)
+    packages=(alsa-utils bc coreutils espeak-ng fd-find fontconfig gawk grep libncurses6 nano w3m wezterm libpulse0)
     total=${#packages[@]}
     count=0
 
@@ -646,7 +646,7 @@ case $OSFAMILY in
     determine_role
 	
     # Define what's required
-    packages=(alsa-utils bc coreutils espeak-ng fd-find fontconfig gawk grep libncurses6 nano w3m)
+    packages=(alsa-utils bc coreutils espeak-ng fd-find fontconfig gawk grep libncurses6 nano w3m libpulse0)
     total=${#packages[@]}
     count=0
 
@@ -694,7 +694,7 @@ case $OSFAMILY in
     determine_role
 	
     # Define what's required
-    packages=(alsa-utils bc coreutils espeak-ng fd-find fontconfig gawk grep libncurses6 nano w3m wezterm)
+    packages=(alsa-utils bc coreutils espeak-ng fd-find fontconfig gawk grep libncurses6 nano w3m wezterm libpulse0)
     total=${#packages[@]}
     count=0
 
@@ -744,7 +744,7 @@ case $OSFAMILY in
     determine_role
 	
     # Define what's required
-    packages=(alsa-utils bc coreutils espeak-ng fd-find fontconfig gawk grep nano ncurses w3m wezterm)
+    packages=(alsa-utils bc coreutils espeak-ng fd-find fontconfig gawk grep nano ncurses w3m wezterm pulseaudio-libs)
     total=${#packages[@]}
     count=0
 
@@ -802,7 +802,7 @@ case $OSFAMILY in
     fi
 
     # Define what's required
-    packages=(alsa-utils bc coreutils espeak-ng fd-find fontconfig gawk grep nano ncurses w3m wezterm)
+    packages=(alsa-utils bc coreutils espeak-ng fd-find fontconfig gawk grep nano ncurses w3m wezterm pulseaudio-libs)
     total=${#packages[@]}
     count=0
 
