@@ -22,7 +22,7 @@ CONFDIR="$NEWCONF"
 INSTALLERFILE="$0"
 if git -C "$(dirname "$INSTALLERFILE")" rev-parse --is-inside-work-tree >/dev/null 2>&1; then INSTALLERFILE=""; fi
 
-HOTKEY=11 DRAWLINES=2 MAINTEXT=15 LOGO=6 INFOTEXT=11 SPINNER=12 ALERT=1
+HOTKEY=11 DRAWLINES=2 MAINTEXT=11 LOGO=6 INFOTEXT=11 SPINNER=12 ALERT=1
 
 # Determine if the user has invoked the installer with a specific distro
 # or release flavour in mind
@@ -459,7 +459,7 @@ if [[ "$response" == [Yy]* ]]; then
   if ! ping -c1 -W1 "1.1.1.1" >/dev/null 2>&1; then
     tput clear; print_header
     tput cup 6 4; tput setaf $ALERT; echo -e "Sadly, you do not appear to be able to reach the Internet.\n\nThis is a requirement for the Giocoso installation." | fold -s -w 76 | sed '2,$s/^/    /'
-    tput cup 10 4; tput setaf $MAINTEXT; read -n 1 -p "Quitting in the meantime. Press a key to exit."
+    tput cup 10 4; tput setaf $ALERT; read -n 1 -p "Quitting in the meantime. Press a key to exit."
     tput reset; tput sgr0
     exit_program
   fi
@@ -483,7 +483,9 @@ if [[ "$response" == [Yy]* ]]; then
   # main script in the program folder, which arrives later; nothing after this needs the password again.
   # -----------------------------------------------------
   echo ""
+  tput setaf $ALERT
   sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; exit_program; }
+  tput setaf $MAINTEXT
   if [[ $(uname -s) == "Darwin" ]]; then BINDIR="/usr/local/bin"; else BINDIR="/usr/bin"; fi
   sudo mkdir -p "$BINDIR"
   sudo rm -f "$BINDIR/giocoso4.sh" "$BINDIR/giocoso" 2>/dev/null
