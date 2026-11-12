@@ -28,6 +28,12 @@ while getopts "v:d:" opt; do
 	esac
 done
 
+# -v must be beta or stable; leaving it out means stable
+case "$GIORELEASE" in
+  beta|stable|"") ;;
+  *) echo "Unknown release '$GIORELEASE': use -v beta or -v stable (or leave -v out for stable)."; exit 1 ;;
+esac
+
 if [[ $GIORELEASE == "beta" ]]; then 
   REMOTESOURCE="https://raw.githubusercontent.com/dizwell/giocoso4/beta"   # Everything is fetched from GitHub: beta branch (work in progress)...
 else
