@@ -312,14 +312,15 @@ make -j"$JOBS"
 function validate {
 # Copy the compiled executables and required configuration files.
 echo "Installing branded binaries into $BIN_DIR..."
-cp "$FFMPEG_DIR/ffmpeg" "$BIN_DIR/ffmpeg-macos-arm64"
-cp "$FFMPEG_DIR/ffprobe" "$BIN_DIR/ffprobe-macos-arm64"
-cp "$FLAC_DIR/src/flac/flac" "$BIN_DIR/flac-macos-arm64"
-cp "$FLAC_DIR/src/metaflac/metaflac" "$BIN_DIR/metaflac-macos-arm64"
-cp "$IMAGEMAGICK_DIR/utilities/magick" "$BIN_DIR/magick-macos-arm64"
+# Each old binary is deleted first: copying over one MacOS has already run can make it kill the new one ("Killed: 9")
+rm -f "$BIN_DIR/ffmpeg-macos-arm64"; cp "$FFMPEG_DIR/ffmpeg" "$BIN_DIR/ffmpeg-macos-arm64"
+rm -f "$BIN_DIR/ffprobe-macos-arm64"; cp "$FFMPEG_DIR/ffprobe" "$BIN_DIR/ffprobe-macos-arm64"
+rm -f "$BIN_DIR/flac-macos-arm64"; cp "$FLAC_DIR/src/flac/flac" "$BIN_DIR/flac-macos-arm64"
+rm -f "$BIN_DIR/metaflac-macos-arm64"; cp "$FLAC_DIR/src/metaflac/metaflac" "$BIN_DIR/metaflac-macos-arm64"
+rm -f "$BIN_DIR/magick-macos-arm64"; cp "$IMAGEMAGICK_DIR/utilities/magick" "$BIN_DIR/magick-macos-arm64"
 cp "$IMAGEMAGICK_DIR/config/colors.xml" "$PREFIX/txt/"
 cp "$IMAGEMAGICK_DIR/config/configure.xml" "$PREFIX/txt/"
-cp "$SIXEL_DIR/converters/img2sixel" "$BIN_DIR/img2sixel-macos-arm64"
+rm -f "$BIN_DIR/img2sixel-macos-arm64"; cp "$SIXEL_DIR/converters/img2sixel" "$BIN_DIR/img2sixel-macos-arm64"
 
 chmod 755 "$BIN_DIR/ffmpeg-macos-arm64" "$BIN_DIR/ffprobe-macos-arm64" "$BIN_DIR/flac-macos-arm64" "$BIN_DIR/metaflac-macos-arm64" "$BIN_DIR/magick-macos-arm64" "$BIN_DIR/img2sixel-macos-arm64"
 
