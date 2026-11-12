@@ -238,11 +238,6 @@ if [[ $OS == "DARWIN" ]]; then
     exit 1
   fi
   chmod +x "$NEWCONF/giocoso4.sh"
-  # The main script lives in the program folder (so git pull keeps it current); /usr/local/bin just links to it
-  sudo rm -f "/usr/local/bin/giocoso4.sh" "/usr/local/bin/giocoso" 2>/dev/null
-  sudo ln -s "$NEWCONF/giocoso4.sh" "/usr/local/bin/giocoso4.sh"
-  sudo ln -s "$NEWCONF/giocoso4.sh" "/usr/local/bin/giocoso"
-  sudo sh -c 'printf "#!/usr/bin/env bash\ngiocoso --play\n" >/usr/local/bin/minig'; sudo chmod +x /usr/local/bin/minig
   
   rm -f "$NEWCONF/db/global_phonemes.sql"
   downloaded=0
@@ -274,11 +269,6 @@ else
     exit 1
   fi
   chmod +x "$NEWCONF/giocoso4.sh"
-  # The main script lives in the program folder (so git pull keeps it current); /usr/bin just links to it
-  sudo rm -f "/usr/bin/giocoso4.sh" "/usr/bin/giocoso" 2>/dev/null
-  sudo ln -s "$NEWCONF/giocoso4.sh" "/usr/bin/giocoso4.sh"
-  sudo ln -s "$NEWCONF/giocoso4.sh" "/usr/bin/giocoso"
-  sudo sh -c 'printf "#!/usr/bin/env bash\ngiocoso --play\n" >/usr/bin/minig'; sudo chmod +x /usr/bin/minig
 
   rm -f "$NEWCONF/db/global_phonemes.sql"
   downloaded=0
@@ -459,6 +449,18 @@ if [[ "$response" == [Yy]* ]]; then
   if [[ ! -d "$NEWCONF/txt" ]]; then mkdir -p "$NEWCONF/txt"; fi
   if [[ ! -d "$NEWCONF/tmp" ]]; then mkdir -p "$NEWCONF/tmp"; fi
   if [[ ! -d "$NEWCONF/exec" ]]; then mkdir -p "$NEWCONF/exec"; fi
+
+  # 3a. Ask for the sudo password once, now, and make the command links straight away. They point at the
+  # main script in the program folder, which arrives later; nothing after this needs the password again.
+  # -----------------------------------------------------
+  echo ""
+  sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; exit_program; }
+  if [[ $(uname -s) == "Darwin" ]]; then BINDIR="/usr/local/bin"; else BINDIR="/usr/bin"; fi
+  sudo mkdir -p "$BINDIR"
+  sudo rm -f "$BINDIR/giocoso4.sh" "$BINDIR/giocoso" 2>/dev/null
+  sudo ln -s "$NEWCONF/giocoso4.sh" "$BINDIR/giocoso4.sh"
+  sudo ln -s "$NEWCONF/giocoso4.sh" "$BINDIR/giocoso"
+  sudo sh -c 'printf "#!/usr/bin/env bash\ngiocoso --play\n" >'"$BINDIR/minig"; sudo chmod +x "$BINDIR/minig"
   
   # 4. Call giooscheck.sh and get packages installed
   # -----------------------------------------------------
@@ -559,20 +561,6 @@ end
 return config
 EOF
   fi  
-  
-  # 9. Create minig launcher
-  # -----------------------------------------------------  
-  if [[ $OS == "DARWIN" ]]; then
-    if ! [[ -f /usr/local/bin/minig ]]; then 
-      echo -e '#!/usr/bin/env bash\ngiocoso --play' | sudo tee /usr/local/bin/minig > /dev/null
-      sudo chmod +x /usr/local/bin/minig
-    fi
-  else
-    if ! [[ -f /usr/bin/minig ]]; then
-      echo -e '#!/usr/bin/env bash\ngiocoso --play' | sudo tee /usr/bin/minig > /dev/null
-      sudo chmod +x /usr/bin/minig
-    fi
-  fi
   
   # 10. Finish Up
   # -----------------------------------------------------
