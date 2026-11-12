@@ -39,3 +39,22 @@
 /art/nowplaying.jpg
 /art/giocosoicosmall.png
 /art/giocosoicosmallbeta.png
+
+# Working files Giocoso writes while running: never committed
+/txt/advsqltext.txt
+/txt/autostop.txt
+/txt/caption.txt
+/txt/countdown.txt
+/txt/dbops/
+/txt/directplay.txt
+/txt/giocoso-tracklist.txt
+/txt/giocoso.conf-*
+/txt/histogram.txt
+/txt/install-log.txt
+/txt/mgioplay.txt
+/txt/nowplaying.txt
+/txt/repeat.txt
+/txt/searchfilter.txt
+/txt/skip.txt
+/txt/sqlfilter.txt
+/txt/terminate.txt
