@@ -131,6 +131,19 @@ case "$OSFAMILY" in
 esac
 }
 
+function wait_for_db {
+# MariaDB takes a few seconds to accept connections after it is (re)started: wait for it, for up to a minute
+local waited=0
+until sudo mariadb -e "select 1;" >/dev/null 2>&1; do
+  sleep 1
+  waited=$((waited + 1))
+  if [[ $waited -ge 60 ]]; then
+    dialog --title " Database Not Responding " --msgbox "\\nMariaDB has not started responding after a minute, so Giocoso's database could not be created.\\n\\nRe-run the installer once MariaDB is running." 12 70
+    return 1
+  fi
+done
+}
+
 function initialise_db {	
 if [[ $GIOSERVER == "yes" ]]; then
 	
@@ -170,6 +183,7 @@ if [[ $GIOSERVER == "yes" ]]; then
   
     if [[ $OS == "DARWIN" && $pkgmanager == "homebrew" ]]; then
       brew services restart mariadb@11.4 2>/dev/null
+      wait_for_db || return 1
       # Now initialise the database
 	  sudo mariadb >/dev/null 2>&1 <<'EOF' 
 	  DELETE FROM mysql.global_priv
@@ -220,6 +234,7 @@ EOF
 EOF
     else
       sudo systemctl restart mariadb.service
+      wait_for_db || return 1
       # Now initialise the database
 	  sudo mariadb >/dev/null 2>&1 <<'EOF' 
 	  DELETE FROM mysql.global_priv
@@ -245,6 +260,7 @@ fi
 function create_db {
 if [[ $GIOSERVER == "yes" ]]; then
   # Create the giocoso4 database and user, provided it doesn't already exist  
+  wait_for_db || return 1
   if ! sudo mariadb -e "use giocoso4" 2>/dev/null; then
     sudo mariadb -e  "create database giocoso4 character set = 'utf8mb4' collate = 'utf8mb4_general_ci'"
     sudo mariadb -e  "create user 'giocoso4'@'localhost' identified by 'giocoso4'"
