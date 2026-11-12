@@ -445,6 +445,21 @@ if [[ -z $OSFAMILY ]]; then OSFAMILY="ELSE"; fi
 # -----------------------------------------------------------------------------
 if [[ -f /etc/rpi-issue ]]; then OSFAMILY="RASPBIAN"; fi
 
+function wezterm_app_install {
+# MacPorts' WezTerm package needs the full Xcode application, not just the command-line tools, so on MacPorts Macs
+# we install WezTerm's own ready-made app instead: a Universal build for Intel and Apple Silicon alike, and the
+# same release Homebrew installs. Skipped if WezTerm is already present.
+local WEZVER="20240203-110809-5046fc22"
+local WEZDIR="/tmp/WezTerm-macos-$WEZVER"
+if [[ -x /opt/local/bin/wezterm || -x /Applications/WezTerm.app/Contents/MacOS/wezterm ]]; then return 0; fi
+curl -fsSL --retry 5 -o "$WEZDIR.zip" "https://github.com/wezterm/wezterm/releases/download/$WEZVER/WezTerm-macos-$WEZVER.zip" || return 1
+rm -rf "$WEZDIR"
+ditto -x -k "$WEZDIR.zip" /tmp || return 1
+rm -rf /Applications/WezTerm.app
+mv "$WEZDIR/WezTerm.app" /Applications/ || return 1
+rm -rf "$WEZDIR" "$WEZDIR.zip"
+}
+
 # Now define the software tools etc. required for each family
 # -----------------------------------------------------------------------------
 case $OSFAMILY in
@@ -900,7 +915,11 @@ case $OSFAMILY in
       if [[ $pkgmanager == "homebrew" ]]; then
         brew install --quiet "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 
       elif [[ $pkgmanager == "macports" ]]; then
-        sudo port -N install "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 
+        if [[ $pkg == "wezterm" ]]; then
+          wezterm_app_install >> "$CONFDIR/txt/install-log.txt" 2>&1
+        else
+          sudo port -N install "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 
+        fi
       fi
       
       sleep 0.1

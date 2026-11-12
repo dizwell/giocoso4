@@ -351,16 +351,13 @@ else
 
   cat > "$APPPATH/Contents/MacOS/$APPNAME" <<EOF
 #!/bin/bash
-if [[ -x /opt/homebrew/bin/bash && -x /opt/homebrew/bin/wezterm ]]; then
-  bashPath="/opt/homebrew/bin/bash"
-  weztermPath="/opt/homebrew/bin/wezterm"
-elif [[ -x /usr/local/bin/bash && -x /usr/local/bin/wezterm ]]; then
-  bashPath="/usr/local/bin/bash"
-  weztermPath="/usr/local/bin/wezterm"
-else
-  bashPath="/opt/local/bin/bash"
-  weztermPath="/opt/local/bin/wezterm"
-fi
+# Use the first bash and WezTerm found: Homebrew (Apple Silicon or Intel), MacPorts, then WezTerm's own app
+for bashPath in /opt/homebrew/bin/bash /usr/local/bin/bash /opt/local/bin/bash; do
+  [[ -x "\$bashPath" ]] && break
+done
+for weztermPath in /opt/homebrew/bin/wezterm /usr/local/bin/wezterm /opt/local/bin/wezterm /Applications/WezTerm.app/Contents/MacOS/wezterm; do
+  [[ -x "\$weztermPath" ]] && break
+done
 
 exec "\$weztermPath" --config-file "\$HOME/.giocoso.lua" start -- "\$bashPath" -l -c 'ulimit -u 4000; exec "\$BASH" /usr/local/bin/giocoso4.sh'
 EOF
