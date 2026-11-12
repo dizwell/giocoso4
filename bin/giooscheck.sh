@@ -470,7 +470,7 @@ case $OSFAMILY in
     determine_role
 	
     # Define what's required
-    packages=(alsa-utils base-devel bc curl espeak-ng fd file fmt fontconfig gawk git grep nano ncurses util-linux w3m wezterm)
+    packages=(alsa-utils bc espeak-ng fd fontconfig gawk grep nano ncurses w3m wezterm)
     total=${#packages[@]}
     count=0
 
@@ -518,7 +518,7 @@ case $OSFAMILY in
     sudo pacman -S --noconfirm dialog > /dev/null 2>&1
     determine_role
     # Define what's required
-    packages=(alsa-utils base-devel bc cmake curl espeak-ng fd file fmt fontconfig gawk git grep nano ncurses util-linux w3m wezterm)
+    packages=(alsa-utils bc espeak-ng fd fontconfig gawk grep nano ncurses w3m wezterm)
     total=${#packages[@]}
     count=0
 
@@ -576,7 +576,7 @@ case $OSFAMILY in
     determine_role
 	
     # Define what's required
-    packages=(alsa-utils bc coreutils curl espeak-ng fd-find file fontconfig gawk grep libncurses6 nano uuid-runtime w3m wezterm)
+    packages=(alsa-utils bc coreutils espeak-ng fd-find fontconfig gawk grep libncurses6 nano w3m wezterm)
     total=${#packages[@]}
     count=0
 
@@ -631,7 +631,7 @@ case $OSFAMILY in
     determine_role
 	
     # Define what's required
-    packages=(alsa-utils bc coreutils curl espeak-ng fd-find file fontconfig gawk grep libncurses6 nano uuid-runtime w3m)
+    packages=(alsa-utils bc coreutils espeak-ng fd-find fontconfig gawk grep libncurses6 nano w3m)
     total=${#packages[@]}
     count=0
 
@@ -679,7 +679,7 @@ case $OSFAMILY in
     determine_role
 	
     # Define what's required
-    packages=(alsa-utils bc coreutils curl espeak-ng fd-find file fontconfig gawk grep libncurses6 nano uuid-runtime w3m wezterm)
+    packages=(alsa-utils bc coreutils espeak-ng fd-find fontconfig gawk grep libncurses6 nano w3m wezterm)
     total=${#packages[@]}
     count=0
 
@@ -726,12 +726,10 @@ case $OSFAMILY in
 
     echo "    Adding needed repositories. Please be patient..."
     sudo dnf -y install dialog > /dev/null 2>&1
-    sudo dnf -y install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm >/dev/null 2>&1
-    sudo dnf -y copr enable lchh/libsixel > /dev/null 2>&1
     determine_role
 	
     # Define what's required
-    packages=(alsa-utils bc coreutils curl espeak-ng fd-find file fontconfig gawk grep nano ncurses util-linux w3m wezterm)
+    packages=(alsa-utils bc coreutils espeak-ng fd-find fontconfig gawk grep nano ncurses w3m wezterm)
     total=${#packages[@]}
     count=0
 
@@ -785,14 +783,11 @@ case $OSFAMILY in
     if [[ $FUSIONON -eq 0 ]]; then
       sudo dnf -y install "https://dl.fedoraproject.org/pub/epel/epel-release-latest-$(rpm -E %rhel).noarch.rpm" >/dev/null 2>&1
       sudo dnf -y install "https://dl.fedoraproject.org/pub/epel/epel-next-release-latest-$(rpm -E %rhel).noarch.rpm" >/dev/null 2>&1
-      sudo dnf -y install "https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-$(rpm -E %rhel).noarch.rpm" >/dev/null 2>&1
-      sudo dnf -y install "https://mirrors.rpmfusion.org/nonfree/el/rpmfusion-nonfree-release-$(rpm -E %rhel).noarch.rpm" >/dev/null 2>&1
-      sudo dnf config-manager --add-repo=https://negativo17.org/repos/epel-multimedia.repo >/dev/null 2>&1
       sudo dnf -y config-manager --set-enabled crb >/dev/null 2>&1
     fi
 
     # Define what's required
-    packages=(alsa-utils bc coreutils curl espeak-ng fd-find file fontconfig gawk grep nano ncurses util-linux w3m wezterm)
+    packages=(alsa-utils bc coreutils espeak-ng fd-find fontconfig gawk grep nano ncurses w3m wezterm)
     total=${#packages[@]}
     count=0
 
@@ -891,7 +886,7 @@ case $OSFAMILY in
     determine_role
 
     # Define what's required
-    packages=(bc coreutils fd file fontconfig gawk gsed ggrep grep md5sha1sum ncurses nano util-linux w3m wezterm)
+    packages=(bc coreutils fd fontconfig gawk gsed ggrep grep md5sha1sum ncurses nano w3m wezterm)
     total=${#packages[@]}
     count=0
 
