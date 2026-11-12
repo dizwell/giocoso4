@@ -5,7 +5,7 @@
 # versions will get rebuilt when I'm ready, not when they decide!
 #
 # Intended to be run on a freshly-built Mac Intel system, with Xcode command line tools installed, and using
-# Macports. Results in (up to) six executables being created in $HOME/.local/share/giocoso4/exec.
+# Macports (for build tools only). Results in (up to) six executables being created in $HOME/.local/share/giocoso4/exec.
 #
 #############################################################################################################
 set -euo pipefail
@@ -16,6 +16,8 @@ IMAGEMAGICK_DIR="$HOME/ImageMagick-7.1.2-30"
 IMAGEMAGICK_VERSION="7.1.2-30"
 IMAGEMAGICK_ARCHIVE="ImageMagick-$IMAGEMAGICK_VERSION.tar.gz"
 SIXEL_DIR="$HOME/libsixel"
+LIBS_DIR="$HOME/giolibs"                 # Static JPEG, PNG and FreeType libraries for magick
+LIBS_SRC="$HOME/giolibs-src"
 BIN_DIR="$HOME/.local/share/giocoso4/exec"
 PREFIX="$HOME/.local/share/giocoso4"
 JOBS="$(sysctl -n hw.ncpu)"
@@ -44,7 +46,7 @@ for tool in git make clang awk sed grep curl tar; do
   fi
 done
 
-for package in autoconf automake libtool nasm pkgconfig jpeg libpng freetype; do
+for package in autoconf automake libtool nasm pkgconfig cmake; do
   if ! port installed "$package" | grep -q "(active)"; then
     echo "Installing missing prerequisite: $package"
     sudo port install "$package"
@@ -200,6 +202,32 @@ echo "Building FFmpeg and ffprobe..."
 make -j"$JOBS"
 }
 
+function build_imagelibs {
+# Static JPEG, PNG and FreeType libraries, built here so magick never depends on Homebrew's or MacPorts' copies
+rm -rf "$LIBS_DIR" "$LIBS_SRC"
+mkdir -p "$LIBS_DIR" "$LIBS_SRC"
+cd "$LIBS_SRC"
+git -c advice.detachedHead=false clone -q --depth 1 --branch 3.2.1 https://github.com/libjpeg-turbo/libjpeg-turbo.git
+git -c advice.detachedHead=false clone -q --depth 1 --branch v1.6.59 https://github.com/pnggroup/libpng.git
+git -c advice.detachedHead=false clone -q --depth 1 --branch VER-2-15-0 https://github.com/freetype/freetype.git
+
+echo "Building static JPEG, PNG and FreeType libraries..."
+cmake -S libjpeg-turbo -B libjpeg-turbo/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$LIBS_DIR" -DCMAKE_INSTALL_LIBDIR=lib \
+  -DENABLE_SHARED=OFF -DWITH_TURBOJPEG=OFF >/dev/null
+cmake --build libjpeg-turbo/build -j"$JOBS" >/dev/null
+cmake --install libjpeg-turbo/build >/dev/null
+
+cmake -S libpng -B libpng/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$LIBS_DIR" -DCMAKE_INSTALL_LIBDIR=lib \
+  -DPNG_SHARED=OFF -DPNG_TESTS=OFF -DPNG_TOOLS=OFF -DPNG_FRAMEWORK=OFF >/dev/null
+cmake --build libpng/build -j"$JOBS" >/dev/null
+cmake --install libpng/build >/dev/null
+
+cmake -S freetype -B freetype/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$LIBS_DIR" -DCMAKE_INSTALL_LIBDIR=lib \
+  -DBUILD_SHARED_LIBS=OFF -DFT_DISABLE_BZIP2=ON -DFT_DISABLE_PNG=ON -DFT_DISABLE_HARFBUZZ=ON -DFT_DISABLE_BROTLI=ON >/dev/null
+cmake --build freetype/build -j"$JOBS" >/dev/null
+cmake --install freetype/build >/dev/null
+}
+
 function build_magick {
 # Download and build ImageMagick.
 cd "$HOME"
@@ -242,10 +270,16 @@ if ! grep -Fq 'MAGICK_LIB_VERSION_TEXT="bbritten-4.0.0"' configure; then
 fi
 
 echo "Configuring ImageMagick..."
-./configure --prefix="$PREFIX" --disable-installed --disable-shared --enable-static --without-perl --without-magick-plus-plus --without-bzlib --without-dps --without-djvu --without-fftw --without-flif --without-fpx --without-gslib --without-heic --without-jbig --without-jxl --without-lcms --without-lqr --without-lzma --without-openexr --without-openjp2 --without-pango --without-raw --without-rsvg --without-tiff --without-webp --without-zip --without-zstd --without-video --without-x --with-jpeg --with-png --with-freetype
+PKG_CONFIG_PATH="$LIBS_DIR/lib/pkgconfig" ./configure PKG_CONFIG="pkg-config --static" CPPFLAGS="-I$LIBS_DIR/include" LDFLAGS="-L$LIBS_DIR/lib" --prefix="$PREFIX" --disable-installed --disable-shared --enable-static --disable-openmp --without-fontconfig --without-gvc --without-xml --without-perl --without-magick-plus-plus --without-bzlib --without-dps --without-djvu --without-fftw --without-flif --without-fpx --without-gslib --without-heic --without-jbig --without-jxl --without-lcms --without-lqr --without-lzma --without-openexr --without-openjp2 --without-pango --without-raw --without-rsvg --without-tiff --without-webp --without-zip --without-zstd --without-video --without-x --with-jpeg --with-png --with-freetype
 
 echo "Building ImageMagick..."
 make -j"$JOBS"
+
+# magick must use nothing but MacOS's own libraries: stop if it still points at Homebrew or MacPorts
+if otool -L utilities/magick | grep -E "/opt/homebrew|/usr/local/(opt|Cellar|lib)|/opt/local"; then
+  echo "ERROR: magick still depends on the libraries listed above."
+  exit 1
+fi
 }
 
 function build_sixel {
@@ -307,7 +341,7 @@ if "$BIN_DIR/ffmpeg-macos-x86_64" -version | grep -Fq "version $VERSION_STRING" 
   echo
   echo "All binaries rebuilt and verified successfully."
   echo "Removing source repositories..."
-  rm -rf "$FFMPEG_DIR" "$FLAC_DIR" "$IMAGEMAGICK_DIR" "$SIXEL_DIR"
+  rm -rf "$FFMPEG_DIR" "$FLAC_DIR" "$IMAGEMAGICK_DIR" "$SIXEL_DIR" "$LIBS_DIR" "$LIBS_SRC"
   rm -f "$HOME/$IMAGEMAGICK_ARCHIVE"
   echo "Source repositories removed."
 else
@@ -320,6 +354,7 @@ function main {
 prebuild
 build_flac
 build_ffmpeg
+build_imagelibs
 build_magick
 build_sixel
 validate
