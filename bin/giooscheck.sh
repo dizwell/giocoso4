@@ -940,3 +940,12 @@ METAFLAC=$METAFLAC
 MAGICK=$MAGICK
 SIXEL=$SIXEL
 export MAGICK_CONFIGURE_PATH=$CONFDIR/txt" > "$CONFDIR/txt/programvariables.txt"
+
+# The small menu logos are made on each computer from the full-size icons, at the configured size
+# (they aren't shipped). Make any that are missing; the configuration editor remakes them when saved.
+for smalllogo in giocosoico giocosoicobeta; do
+  if [[ ! -f "$CONFDIR/art/${smalllogo/ico/icosmall}.png" ]]; then
+    "$MAGICK" "$CONFDIR/art/$smalllogo.png" -resize "${LOGOSIZE:-110x110}" "$CONFDIR/art/${smalllogo/ico/icosmall}.png" 2>/dev/null
+  fi
+done
+unset smalllogo
