@@ -132,7 +132,7 @@ if [[ $download_status -ne 0 ]]; then
 fi
 
 # Art files next
-components=(giocosoicobeta.png giocosoicosmallbeta.png giocosoicosmall.png genericalbumart.jpg giocosoico.png testaudio.flac LibreBaskerville-Regular.ttf LinLibertine_M.otf silence.flac)
+components=(giocosoicobeta.png genericalbumart.jpg giocosoico.png testaudio.flac LibreBaskerville-Regular.ttf LinLibertine_M.otf silence.flac)
 total=${#components[@]}
 count=0
 (
@@ -190,6 +190,14 @@ if [[ $download_status -ne 0 ]]; then
 fi
 
 chmod +x "$NEWCONF/exec/"*
+
+# Make the small menu logos (not shipped) at the default size, with this computer's own magick.
+# The Mac dock app below uses giocosoicosmall.png as its icon.
+case "$(uname -s)" in Darwin) INSTPLAT="macos" ;; *) INSTPLAT="linux" ;; esac
+case "$(uname -m)" in arm64|aarch64) INSTARCH="arm64" ;; *) INSTARCH="x86_64" ;; esac
+for smalllogo in giocosoico giocosoicobeta; do
+  "$NEWCONF/exec/magick-$INSTPLAT-$INSTARCH" "$NEWCONF/art/$smalllogo.png" -resize 110x110 "$NEWCONF/art/${smalllogo/ico/icosmall}.png" 2>/dev/null
+done
 
 # Get the XML files into ../txt for ImageMagick
 components=(colors.xml configure.xml delegates.xml type.xml)
