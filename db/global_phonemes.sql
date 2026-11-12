@@ -461,7 +461,7 @@ INSERT IGNORE INTO `global_phonemes` VALUES
 ('Ariettes Oubliées','Thomas',NULL),
 ('Arise, O Lord, and hear',NULL,'Arise, O Lord, and hear'),
 ('Armand-Louis Couperin','Thomas',NULL),
-('Armida',NULL,'Armida'),
+('Armida',NULL,'Armeeda'),
 ('Armide','Alice',NULL),
 ('Armonia per un tempio della notte','Alice',NULL),
 ('Arnold Bax','Daniel',NULL),
@@ -11175,4 +11175,4 @@ SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-11-11 19:00:00
+-- Dump completed
