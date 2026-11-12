@@ -17,6 +17,11 @@ clear; USERNAME=$(whoami); ERRORCOUNT=0  YPOS=6
 GIORELEASE=""    GIODISTRO=""
 NEWCONF="$HOME/.local/share/giocoso4"
 CONFDIR="$NEWCONF"
+# The installer deletes itself when it finishes or is cancelled, whatever it was saved as (sem4inst, gio4inst...),
+# unless it's the copy inside a program's own repository folder
+INSTALLERFILE="$0"
+if git -C "$(dirname "$INSTALLERFILE")" rev-parse --is-inside-work-tree >/dev/null 2>&1; then INSTALLERFILE=""; fi
+
 HOTKEY=11 DRAWLINES=2 MAINTEXT=15 LOGO=6 INFOTEXT=11 SPINNER=12 ALERT=1
 
 # Determine if the user has invoked the installer with a specific distro
@@ -57,7 +62,7 @@ fi
 }
 
 function exit_program {
-rm -f gio4inst >/dev/null 2>&1
+rm -f "$INSTALLERFILE" >/dev/null 2>&1
 reset
 exit 1
 }
@@ -590,7 +595,7 @@ EOF
   echo ""
   echo "Giocoso installation completed. You can close this terminal now."
   reset
-  rm -f gio4inst
+  rm -f "$INSTALLERFILE"
   exit 0
 else      # They said not to proceed
   clear
@@ -602,5 +607,5 @@ fi
 # Failsafe cleanup
 # -----------------------------------------------------
 reset
-rm -f gio4inst
+rm -f "$INSTALLERFILE"
 exit 0
