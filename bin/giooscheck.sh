@@ -930,6 +930,8 @@ case $OSFAMILY in
     if [[ $pkgmanager == "homebrew" ]]; then
       brew install --quiet "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 
     elif [[ $pkgmanager == "macports" ]]; then
+      # MacPorts has no ready-built MariaDB, so it compiles it: explain the long wait, which would otherwise look like a hang
+      dialog --title " Installing the MariaDB Database " --infobox "\\n\\nNow installing the MariaDB database. MacPorts has to build this from source, which can take 30 minutes or more on some Macs.\\n\\nPlease be patient and press no keys until prompted." 12 70
       sudo port -N install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 
 	  sudo port select mysql mariadb-11.4  >> "$CONFDIR/txt/install-log.txt" 2>&1 
     fi
