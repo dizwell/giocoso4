@@ -42,13 +42,14 @@ esac
 function choose_release {
 if [[ -z $GIORELEASE ]]; then
   clear; print_header
-  tput cup 6 4; tput setaf $INFOTEXT; echo "Do you want to install the stable release (s) or the beta (b) of Giocoso?"
+  tput cup 6 4; tput setaf $INFOTEXT; echo "You have a choice of whether to install the stable or beta release of Giocoso. Beta releases contain all the latest fixes and new features but have not been thoroughly tested on every supported platform and might break, badly. Stable releases have been tested to work correctly on all supported platforms." | fold -s -w 76 | sed '2,$s/^/    /'
+  echo ""
   while true; do
-    tput cup 8 4; tput setaf $ALERT; read -s -n 1 -p "Stable or beta, then? (s/b): " input
+    tput setaf $ALERT; read -s -n 1 -p "    Choose now whether to install the stable or beta release (s/b): " input
     case "$input" in
       [sS]) GIORELEASE="stable"; break ;;
       [bB]) GIORELEASE="beta"; break ;;
-      *) tput cup 10 4; tput setaf $MAINTEXT; echo "Invalid input: only s or b are allowed. Please try again." ;;
+      *) echo ""; echo ""; tput setaf $MAINTEXT; echo "    Invalid input: only s or b are allowed. Please try again."; echo "" ;;
     esac
   done
 fi
