@@ -182,7 +182,11 @@ if [[ $GIOSERVER == "yes" ]]; then
     fi
   
     if [[ $OS == "DARWIN" && $pkgmanager == "homebrew" ]]; then
-      brew services restart mariadb@11.4 2>/dev/null
+      # Stop MariaDB and wait until it really has stopped (Homebrew returns before it has), then start it again
+      # and wait until it really is responding. Otherwise the old server can answer and then vanish mid-setup.
+      brew services stop mariadb@11.4 >/dev/null 2>&1
+      for i in {1..60}; do sudo mariadb -e "select 1;" >/dev/null 2>&1 || break; sleep 1; done
+      brew services start mariadb@11.4 >/dev/null 2>&1
       wait_for_db || return 1
       # Now initialise the database
 	  sudo mariadb >/dev/null 2>&1 <<'EOF' 
