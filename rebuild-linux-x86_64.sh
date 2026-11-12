@@ -17,6 +17,11 @@ IMAGEMAGICK_DIR="$HOME/ImageMagick-7.1.2-30"
 IMAGEMAGICK_VERSION="7.1.2-30"
 IMAGEMAGICK_ARCHIVE="ImageMagick-$IMAGEMAGICK_VERSION.tar.gz"
 SIXEL_DIR="$HOME/libsixel"
+AUDIO_DIR="$HOME/gioaudiolibs"           # Static LAME, Ogg and Vorbis libraries for ffmpeg
+AUDIO_SRC="$HOME/gioaudiolibs-src"
+LAME_VERSION="3.100"
+OGG_VERSION="1.3.5"
+VORBIS_VERSION="1.3.7"
 BIN_DIR="$HOME/.local/share/giocoso4/exec"
 PREFIX="$HOME/.local/share/giocoso4"
 JOBS="$(nproc)"
@@ -171,6 +176,39 @@ echo "Building FLAC and metaflac..."
 make -j"$JOBS"
 }
 
+function build_audiolibs {
+# Static LAME (MP3), Ogg and Vorbis libraries, so ffmpeg can write MP3 and Ogg files without depending on any
+# installed copies of them
+rm -rf "$AUDIO_DIR" "$AUDIO_SRC"
+mkdir -p "$AUDIO_DIR" "$AUDIO_SRC"
+cd "$AUDIO_SRC"
+curl -fL -o lame.tar.gz "https://downloads.sourceforge.net/project/lame/lame/$LAME_VERSION/lame-$LAME_VERSION.tar.gz"
+curl -fL -o libogg.tar.gz "https://github.com/xiph/ogg/releases/download/v$OGG_VERSION/libogg-$OGG_VERSION.tar.gz"
+curl -fL -o libvorbis.tar.gz "https://github.com/xiph/vorbis/releases/download/v$VORBIS_VERSION/libvorbis-$VORBIS_VERSION.tar.gz"
+for f in lame libogg libvorbis; do tar -xzf "$f.tar.gz"; done
+
+# These packages' own config.guess/config.sub predate some newer processors, so use automake's current copies
+for d in "lame-$LAME_VERSION" "libogg-$OGG_VERSION" "libvorbis-$VORBIS_VERSION"; do
+  cp -f "$(automake --print-libdir)/config.guess" "$(automake --print-libdir)/config.sub" "$d/"
+done
+
+echo "Building static LAME, Ogg and Vorbis libraries..."
+cd "$AUDIO_SRC/lame-$LAME_VERSION"
+./configure --prefix="$AUDIO_DIR" --disable-shared --enable-static --disable-frontend --disable-decoder >/dev/null
+make -j"$JOBS" >/dev/null
+make install >/dev/null
+
+cd "$AUDIO_SRC/libogg-$OGG_VERSION"
+./configure --prefix="$AUDIO_DIR" --disable-shared --enable-static >/dev/null
+make -j"$JOBS" >/dev/null
+make install >/dev/null
+
+cd "$AUDIO_SRC/libvorbis-$VORBIS_VERSION"
+./configure --prefix="$AUDIO_DIR" --disable-shared --enable-static --with-ogg="$AUDIO_DIR" --disable-docs --disable-examples --disable-oggtest >/dev/null
+make -j"$JOBS" >/dev/null
+make install >/dev/null
+}
+
 function build_ffmpeg {
 if [[ ! -d "$FFMPEG_DIR/.git" ]]; then
   git clone https://git.ffmpeg.org/ffmpeg.git "$FFMPEG_DIR"
@@ -196,7 +234,7 @@ if [[ -f ffbuild/config.mak ]]; then
 fi
 
 echo "Configuring FFmpeg..."
-./configure --prefix="$PREFIX" --bindir="$PREFIX/bin" --disable-everything --enable-ffmpeg --enable-ffprobe --enable-static --disable-shared --disable-doc --disable-network --enable-protocol=file --enable-demuxer=concat --enable-demuxer=flac --enable-decoder=flac --enable-parser=flac --enable-encoder=pcm_s16le --enable-encoder=pcm_s24le --enable-filter=adelay --enable-filter=volume --enable-filter=aresample --enable-outdev=alsa,pulse --disable-version-tracking
+PKG_CONFIG_PATH="$AUDIO_DIR/lib/pkgconfig" ./configure --prefix="$PREFIX" --bindir="$PREFIX/bin" --disable-everything --enable-ffmpeg --enable-ffprobe --enable-static --disable-shared --disable-doc --disable-network --enable-protocol=file,pipe --enable-demuxer=concat,flac,ape,mov,mp3,ogg,asf,wav,aiff,dsf --enable-decoder=flac,ape,aac,alac,mp3,mp3float,vorbis,opus,wmav1,wmav2,wmapro,wmalossless,'pcm*',dsd_lsbf,dsd_msbf,dsd_lsbf_planar,dsd_msbf_planar,mjpeg,png --enable-parser=flac,mpegaudio,aac,vorbis,opus,mjpeg,png --enable-encoder=flac,libmp3lame,libvorbis,wmav2,pcm_s16le,pcm_s24le,pcm_s32le,pcm_s16be,pcm_s24be,pcm_s32be,png --enable-muxer=flac,mp3,ogg,asf,wav,aiff,md5,null,image2 --enable-filter=adelay,volume,volumedetect,aresample,aformat,lowpass,showspectrumpic,scale,format --enable-libmp3lame --enable-libvorbis --extra-cflags="-I$AUDIO_DIR/include" --extra-ldflags="-L$AUDIO_DIR/lib" --extra-libs="-logg -lm" --enable-outdev=alsa,pulse --disable-version-tracking
 
 echo "Building FFmpeg and ffprobe..."
 make -j"$JOBS"
@@ -307,6 +345,8 @@ echo "=== Rebuilt versions ==="
 "$BIN_DIR/img2sixel-linux-x86_64" --version
 
 if "$BIN_DIR/ffmpeg-linux-x86_64" -version | grep -Fq "version $VERSION_STRING" &&
+  "$BIN_DIR/ffmpeg-linux-x86_64" -hide_banner -encoders | grep -q libmp3lame &&
+  "$BIN_DIR/ffmpeg-linux-x86_64" -hide_banner -encoders | grep -q libvorbis &&
   "$BIN_DIR/ffprobe-linux-x86_64" -version | grep -Fq "version $VERSION_STRING" &&
   "$BIN_DIR/flac-linux-x86_64" --version | grep -Fq "flac $VERSION_STRING" &&
   "$BIN_DIR/metaflac-linux-x86_64" --version | grep -Fq "metaflac $VERSION_STRING" &&
@@ -315,7 +355,7 @@ if "$BIN_DIR/ffmpeg-linux-x86_64" -version | grep -Fq "version $VERSION_STRING" 
   echo
   echo "All binaries rebuilt and verified successfully."
   echo "Removing source repositories..."
-  rm -rf "$FFMPEG_DIR" "$FLAC_DIR" "$IMAGEMAGICK_DIR" "$SIXEL_DIR"
+  rm -rf "$FFMPEG_DIR" "$FLAC_DIR" "$IMAGEMAGICK_DIR" "$SIXEL_DIR" "$AUDIO_DIR" "$AUDIO_SRC"
   rm -f "$HOME/$IMAGEMAGICK_ARCHIVE"
   echo "Source repositories removed."
 else
@@ -327,6 +367,7 @@ fi
 function main {
 prebuild
 build_flac
+build_audiolibs
 build_ffmpeg
 build_magick
 build_sixel
