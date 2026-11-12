@@ -223,7 +223,7 @@ cmake --build libpng/build -j"$JOBS" >/dev/null
 cmake --install libpng/build >/dev/null
 
 cmake -S freetype -B freetype/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$LIBS_DIR" -DCMAKE_INSTALL_LIBDIR=lib \
-  -DBUILD_SHARED_LIBS=OFF -DFT_DISABLE_BZIP2=ON -DFT_DISABLE_PNG=ON -DFT_DISABLE_HARFBUZZ=ON -DFT_DISABLE_BROTLI=ON >/dev/null
+  -DBUILD_SHARED_LIBS=OFF -DFT_DISABLE_BZIP2=ON -DFT_DISABLE_PNG=ON -DFT_DISABLE_HARFBUZZ=ON -DFT_DISABLE_BROTLI=ON -DFT_DISABLE_HVF=ON >/dev/null
 cmake --build freetype/build -j"$JOBS" >/dev/null
 cmake --install freetype/build >/dev/null
 }
