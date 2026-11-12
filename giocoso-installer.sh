@@ -28,31 +28,33 @@ while getopts "v:d:" opt; do
 	esac
 done
 
-# -v must be beta or stable; if it's left out, ask which
+# -v must be beta or stable; if it's left out, choose_release asks which (after "Do you wish to proceed?")
 case "$GIORELEASE" in
-  beta|stable) ;;
-  "")
-    echo ""
-    echo "    Do you want to install the stable release (s) or the beta (b) of Giocoso?"
-    echo ""
-    while true; do
-      read -n 1 -p "    Stable or beta, then? (s/b): " input
-      case "$input" in
-        [sS]) GIORELEASE="stable"; break ;;
-        [bB]) GIORELEASE="beta"; break ;;
-        *) echo ""; echo "    Invalid input: only s or b are allowed. Please try again."; echo "" ;;
-      esac
-    done
-    echo ""
-    ;;
+  beta|stable|"") ;;
   *) echo "Unknown release '$GIORELEASE': use -v beta or -v stable."; exit 1 ;;
 esac
 
-if [[ $GIORELEASE == "beta" ]]; then 
-  REMOTESOURCE="https://raw.githubusercontent.com/dizwell/giocoso4/beta"   # Everything is fetched from GitHub: beta branch (work in progress)...
-else
-  REMOTESOURCE="https://raw.githubusercontent.com/dizwell/giocoso4/main"   # ...or main (releases)
+function choose_release {
+if [[ -z $GIORELEASE ]]; then
+  clear; print_header
+  tput cup 6 4; tput setaf $INFOTEXT; echo "Do you want to install the stable release (s) or the beta (b) of Giocoso?"
+  while true; do
+    tput cup 8 4; tput setaf $ALERT; read -s -n 1 -p "Stable or beta, then? (s/b): " input
+    case "$input" in
+      [sS]) GIORELEASE="stable"; break ;;
+      [bB]) GIORELEASE="beta"; break ;;
+      *) tput cup 10 4; tput setaf $MAINTEXT; echo "Invalid input: only s or b are allowed. Please try again." ;;
+    esac
+  done
 fi
+
+# Everything is fetched from GitHub: the beta branch (work in progress) or main (releases)
+if [[ $GIORELEASE == "beta" ]]; then
+  REMOTESOURCE="https://raw.githubusercontent.com/dizwell/giocoso4/beta"
+else
+  REMOTESOURCE="https://raw.githubusercontent.com/dizwell/giocoso4/main"
+fi
+}
 
 function exit_program {
 rm -f gio4inst >/dev/null 2>&1
@@ -442,9 +444,10 @@ fi
 tput clear; print_header
 tput cup 6 4; tput setaf $INFOTEXT; echo -e "Welcome to the Giocoso Installer."
 tput cup 8 4; tput setaf $INFOTEXT; echo -e "• It will install numerous new software packages necessary for Giocoso to function correctly. It will also create a bunch of new folders within your \$HOME folder.\n\n• Any existing Giocoso installation will be backed up, just in case it's needed.\n\n• Any existing Giocoso database will NOT be backed up: you may wish to perform a manual backup before proceeding, if you wish to be cautious.\n\n• If you are happy to proceed, tap 'y' when prompted; tapping anything else will cancel the installation without it having touched your system at all." | fold -s -w 76 | sed '2,$s/^/    /'
-tput cup 19 4; tput setaf $ALERT; read -s -n 1 -p "Do you wish to proceed? (y/n): " response
+echo ""; tput setaf $ALERT; read -s -n 1 -p "    Do you wish to proceed? (y/n): " response   # One line below the text, however long it is
 
 if [[ "$response" == [Yy]* ]]; then
+  choose_release
   clear; print_header; tput setaf $MAINTEXT; tput cup 6 0
   tput cup 6 4; echo -e "Checking your network connection is working..."
   if ! ping -c1 -W1 "1.1.1.1" >/dev/null 2>&1; then
