@@ -444,7 +444,7 @@ if [[ $DIRECT_PLAY -eq  0 ]]; then
   tput cup 22 4; echo -en "                                              "
   tput cup 23 4; echo -en "                                              "
      
-  tput cup 5 4; tput setaf "$MAINTEXT"; echo -en "$displaycomp$displayapostrophe"
+  tput cup 5 4; tput setaf "$MAINTEXT"; if [[ ${#displaycomp} -gt 45 ]]; then fit_text "$displaycomp" 45; else echo -en "$displaycomp$displayapostrophe"; fi   # Long (mis-tagged) names are trimmed to fit
   tput cup 17 0; tput setaf "$DRAWLINES"; echo -en "├─────────────────────────────────────────────────┤"
   tput cup 18 4; tput setaf "$MAINTEXT"; echo -en "Days since last played: "; tput setaf "$INFOTEXT"; echo -en "$LASTPLAYED : $LASTCOMPOSERPLAYED"
   tput cup 19 4; tput setaf "$MAINTEXT"; echo -en "Recording Year: "; tput setaf "$INFOTEXT"; echo -en "$displaydate"
@@ -489,7 +489,7 @@ else    # True for minimal player
   tput cup 22 4; echo -en "                                              "
   tput cup 23 4; echo -en "                                              "
      
-  tput cup 5 4; tput setaf "$MAINTEXT"; echo -en "$displaycomp$displayapostrophe"
+  tput cup 5 4; tput setaf "$MAINTEXT"; if [[ ${#displaycomp} -gt 45 ]]; then fit_text "$displaycomp" 45; else echo -en "$displaycomp$displayapostrophe"; fi   # Long (mis-tagged) names are trimmed to fit
   tput cup 16 0; tput setaf "$DRAWLINES"; echo -en "├─────────────────────────────────────────────────┤"
   tput cup 18 4; tput setaf "$MAINTEXT"; echo -en "Days since last play: "; tput setaf "$INFOTEXT"; echo -en "$LASTPLAYED"
   tput cup 19 4; tput setaf "$MAINTEXT"; echo -en "Recording Year: "; tput setaf "$INFOTEXT"; echo -en "$displaydate"
