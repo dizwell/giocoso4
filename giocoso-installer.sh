@@ -418,7 +418,7 @@ EOF
 fi
     
 # Confirmation when concluded
-dialog --title " Software Components Completed " --msgbox "\\n\\nAll Giocoso's components have now been installed successfully.\\n\\nPress OK to quit back to the command line." 12 70
+dialog --title " Software Components Completed " --msgbox "\\n\\nAll Giocoso's components have now been installed successfully.\\n\\nPress OK to see an installation summary report." 12 70
 }
 
 function verify_install {
