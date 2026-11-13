@@ -479,10 +479,44 @@ done
 # (returning 0) or, if there were none, returns 1 so the usual "all installed" box shows instead
 FAILEDPKGS="$CONFDIR/tmp/failedpkgs.txt"
 mkdir -p "$CONFDIR/tmp" 2>/dev/null; rm -f "$FAILEDPKGS" 2>/dev/null
+function install_one_pkg {
+# Install one package the way this system's start-up check does, logging to the install log
+local LOG="$CONFDIR/txt/install-log.txt"
+case "$OSFAMILY" in
+  VOID)                   sudo xbps-install -Sf -y "$1" >> "$LOG" 2>&1 ;;
+  ARCH)                   sudo pacman -S --noconfirm "$1" >> "$LOG" 2>&1 ;;
+  DEBIAN|UBUNTU|RASPBIAN) sudo apt-get -o DPkg::Lock::Timeout=300 -y install "$1" >> "$LOG" 2>&1 ;;
+  FEDORA|RHEL)            dnf_retry -y install "$1" --allowerasing ;;
+  MACOS)
+    if [[ $1 == "wezterm" && $pkgmanager == "macports" ]]; then wezterm_app_install >> "$LOG" 2>&1; else mac_install "$1"; fi ;;
+  *) return 1 ;;
+esac
+}
+
 function report_failed_pkgs {
+# Lists any packages that couldn't be installed and offers to try them again, as often as wanted. Returns 1 if
+# nothing failed (or everything succeeded on a retry), so the usual "all installed" box shows; otherwise 0
+local LIST pkg count total
 [[ -s $FAILEDPKGS ]] || return 1
-dialog --title " Some Software Could Not Be Installed " --msgbox "\\n\\nThese packages could not be installed:\\n\\n  $(sort -u "$FAILEDPKGS" | tr '\n' ' ')\\n\\nGiocoso may not work fully until you install them yourself with your package manager. Details are in Giocoso's txt/install-log.txt.\\n\\nClick OK to proceed." 16 80
-return 0
+while [[ -s $FAILEDPKGS ]]; do
+  LIST=$(sort -u "$FAILEDPKGS" | tr '\n' ' ')
+  if ! dialog --title " Some Software Could Not Be Installed " --yes-label " Try again " --no-label " No, carry on " --yesno "\\n\\nThese packages could not be installed:\\n\\n  $LIST\\n\\nThis is often because another program was installing software at the same time. Would you like me to try installing these packages again?" 16 80; then
+    dialog --title " Some Software Could Not Be Installed " --msgbox "\\n\\nThese packages are still not installed:\\n\\n  $LIST\\n\\nGiocoso may not work fully until you install them yourself with your package manager. Details are in Giocoso's txt/install-log.txt.\\n\\nClick OK to proceed." 16 80
+    return 0
+  fi
+  sort -u "$FAILEDPKGS" > "$FAILEDPKGS.retry"; rm -f "$FAILEDPKGS"
+  total=$(wc -l < "$FAILEDPKGS.retry"); count=0
+  while read -r pkg; do
+    count=$((count+1)); echo $((count * 100 / total))
+    install_one_pkg "$pkg" || pkg_installed "$pkg" || echo "$pkg" >> "$FAILEDPKGS"
+  done < "$FAILEDPKGS.retry" | dialog --title " Trying Those Packages Again " --gauge "\\n\\nEach may wait up to five minutes if another program is installing software..." 12 70
+  # If MariaDB has now gone in, run the database set-up it missed first time round
+  if [[ -n $MARIA_PKG ]] && grep -qx "$MARIA_PKG" "$FAILEDPKGS.retry" && ! grep -qx "$MARIA_PKG" "$FAILEDPKGS"; then
+    initialise_db; create_db
+  fi
+  rm -f "$FAILEDPKGS.retry"
+done
+return 1
 }
 
 # On a Mac the package lists name some packages twice, as Homebrew and MacPorts know them differently (icu4c/icu,
