@@ -475,6 +475,26 @@ while true; do
 done
 }
 
+# Packages that fail to install are noted in failedpkgs.txt; afterwards report_failed_pkgs lists them in one box
+# (returning 0) or, if there were none, returns 1 so the usual "all installed" box shows instead
+FAILEDPKGS="$CONFDIR/tmp/failedpkgs.txt"
+mkdir -p "$CONFDIR/tmp" 2>/dev/null; rm -f "$FAILEDPKGS" 2>/dev/null
+function report_failed_pkgs {
+[[ -s $FAILEDPKGS ]] || return 1
+dialog --title " Some Software Could Not Be Installed " --msgbox "\\n\\nThese packages could not be installed:\\n\\n  $(sort -u "$FAILEDPKGS" | tr '\n' ' ')\\n\\nGiocoso may not work fully until you install them yourself with your package manager. Details are in Giocoso's txt/install-log.txt.\\n\\nClick OK to proceed." 16 80
+return 0
+}
+
+# On a Mac the package lists name some packages twice, as Homebrew and MacPorts know them differently (icu4c/icu,
+# for instance), so "no such package" from one manager is expected and isn't reported as a failure
+function mac_install {
+local OUT rc
+if [[ $pkgmanager == "homebrew" ]]; then OUT=$(brew install --quiet "$1" 2>&1); else OUT=$(sudo port -N install "$1" 2>&1); fi
+rc=$?; echo "$OUT" >> "$CONFDIR/txt/install-log.txt"
+if [[ $rc -ne 0 ]] && grep -q -i -E "no available formula|not found|no such port|unknown port" <<< "$OUT"; then return 0; fi
+return $rc
+}
+
 # Now define the software tools etc. required for each family
 # -----------------------------------------------------------------------------
 case $OSFAMILY in
@@ -511,18 +531,18 @@ case $OSFAMILY in
       percent=$((count * 100 / total))
       echo $percent
 
-      sudo xbps-install -Sf -y "$pkg" >> "$CONFDIR/txt/install-log.txt" 2>&1 || true
+      sudo xbps-install -Sf -y "$pkg" >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$pkg" >> "$FAILEDPKGS"
       sleep 0.1
     done
     ) | dialog --title " Installing Giocoso's Software Dependencies " --gauge "\\n\\nInstallation may take some time. Please be patient..." 12 70
 
 	maria_components
-	sudo xbps-install -Sf -y "$MARIA_PKG" >> "$CONFDIR/txt/install-log.txt" 2>&1
+	sudo xbps-install -Sf -y "$MARIA_PKG" >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$MARIA_PKG" >> "$FAILEDPKGS"
     initialise_db
     create_db
     
     # Confirmation when concluded
-    dialog --title " Software Dependencies Installation Completed " --msgbox "\\n\\nAll Giocoso's software dependencies have been installed.\\n\\nClick OK to proceed." 12 70
+    report_failed_pkgs || dialog --title " Software Dependencies Installation Completed " --msgbox "\\n\\nAll Giocoso's software dependencies have been installed.\\n\\nClick OK to proceed." 12 70
   fi
   GREPPROG=grep  SEDPROG=sed  DATEPROG=date  MD5PROG=md5sum  FDPROG=fd
   ;;
@@ -559,18 +579,18 @@ case $OSFAMILY in
       percent=$((count * 100 / total))
       echo $percent
 
-      sudo pacman -S --noconfirm "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1  || true
+      sudo pacman -S --noconfirm "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$pkg" >> "$FAILEDPKGS"
       sleep 0.1
     done
     ) | dialog --title " Installing Giocoso's Software Dependencies " --gauge "\\n\\nInstallation may take some time. Please be patient..." 12 70
 
 	maria_components
-	sudo pacman -S --noconfirm "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 
+	sudo pacman -S --noconfirm "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$MARIA_PKG" >> "$FAILEDPKGS"
 	initialise_db
 	create_db
 	
     # Confirmation when concluded
-    dialog --title " Software Dependencies Installation Completed " --msgbox "\\n\\nAll Giocoso's software dependencies have been installed.\\n\\nClick OK to proceed." 12 70
+    report_failed_pkgs || dialog --title " Software Dependencies Installation Completed " --msgbox "\\n\\nAll Giocoso's software dependencies have been installed.\\n\\nClick OK to proceed." 12 70
   fi
   GREPPROG=grep  SEDPROG=sed  DATEPROG=date  MD5PROG=md5sum  FDPROG=fd
   ;;
@@ -617,18 +637,18 @@ case $OSFAMILY in
       percent=$((count * 100 / total))
       echo $percent
 
-      sudo apt-get -y install "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1  || true
+      sudo apt-get -y install "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$pkg" >> "$FAILEDPKGS"
       sleep 0.1
     done
     ) | dialog --title " Installing Giocoso's Software Dependencies " --gauge "\\n\\nInstallation may take some time. Please be patient..." 12 70
 
 	maria_components
-	sudo apt-get -y install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 
+	sudo apt-get -y install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$MARIA_PKG" >> "$FAILEDPKGS"
 	initialise_db
     create_db
     
     # Confirmation when concluded
-    dialog --title " Software Dependencies Installation Completed " --msgbox "\\n\\nAll Giocoso's software dependencies have been installed.\\n\\nClick OK to proceed." 12 70
+    report_failed_pkgs || dialog --title " Software Dependencies Installation Completed " --msgbox "\\n\\nAll Giocoso's software dependencies have been installed.\\n\\nClick OK to proceed." 12 70
   fi
   GREPPROG=grep  SEDPROG=sed  DATEPROG=date  MD5PROG=md5sum  FDPROG=fdfind
   ;;
@@ -672,17 +692,17 @@ case $OSFAMILY in
       percent=$((count * 100 / total))
       echo $percent
 
-      sudo apt-get -y install "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1  || true
+      sudo apt-get -y install "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$pkg" >> "$FAILEDPKGS"
       sleep 0.1
     done
     ) | dialog --title " Installing Giocoso's Software Dependencies " --gauge "\\n\\nInstallation may take some time. Please be patient..." 12 70
 	maria_components
-	sudo apt-get -y install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1
+	sudo apt-get -y install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$MARIA_PKG" >> "$FAILEDPKGS"
 	initialise_db
 	create_db
 	
     # Confirmation when concluded
-    dialog --title " Software Dependencies Installation Completed " --msgbox "\\n\\nAll Giocoso's software dependencies have been installed.\\n\\nClick OK to proceed." 12 70
+    report_failed_pkgs || dialog --title " Software Dependencies Installation Completed " --msgbox "\\n\\nAll Giocoso's software dependencies have been installed.\\n\\nClick OK to proceed." 12 70
   fi
   GREPPROG=grep  SEDPROG=sed  DATEPROG=date  MD5PROG=md5sum  FDPROG=fdfind
   ;;
@@ -720,17 +740,17 @@ case $OSFAMILY in
       percent=$((count * 100 / total))
       echo $percent
 
-      sudo apt-get -y install "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1  || true
+      sudo apt-get -y install "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$pkg" >> "$FAILEDPKGS"
       sleep 0.1
     done
     ) | dialog --title " Installing Giocoso's Software Dependencies " --gauge "\\n\\nInstallation may take some time. Please be patient..." 12 70
 	maria_components
-	sudo apt-get -y install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 
+	sudo apt-get -y install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$MARIA_PKG" >> "$FAILEDPKGS"
 	initialise_db
 	create_db
 	
     # Confirmation when concluded
-    dialog --title " Software Dependencies Installation Completed " --msgbox "\\n\\nAll Giocoso's software dependencies have been installed.\\n\\nClick OK to proceed." 12 70
+    report_failed_pkgs || dialog --title " Software Dependencies Installation Completed " --msgbox "\\n\\nAll Giocoso's software dependencies have been installed.\\n\\nClick OK to proceed." 12 70
   fi
   GREPPROG=grep SEDPROG=sed DATEPROG=date MD5PROG=md5sum FDPROG=fdfind
   ;;
@@ -770,18 +790,18 @@ case $OSFAMILY in
       percent=$((count * 100 / total))
       echo $percent
 
-      dnf_retry -y install "$pkg" --allowerasing || true
+      dnf_retry -y install "$pkg" --allowerasing || echo "$pkg" >> "$FAILEDPKGS"
       sleep 0.1
     done
     ) | dialog --title " Installing Giocoso's Software Dependencies " --gauge "\\n\\nInstallation may take some time. Please be patient..." 12 70
 
 	maria_components
-	dnf_retry -y install "$MARIA_PKG" --allowerasing
+	dnf_retry -y install "$MARIA_PKG" --allowerasing || echo "$MARIA_PKG" >> "$FAILEDPKGS"
 	initialise_db
 	create_db
 	
     # Confirmation when concluded
-    dialog --title " Software Dependencies Installation Completed " --msgbox "\\n\\nAll Giocoso's software dependencies have been installed.\\n\\nClick OK to proceed." 12 70
+    report_failed_pkgs || dialog --title " Software Dependencies Installation Completed " --msgbox "\\n\\nAll Giocoso's software dependencies have been installed.\\n\\nClick OK to proceed." 12 70
   fi
   GREPPROG=grep  SEDPROG=sed  DATEPROG=date  MD5PROG=md5sum FDPROG=fd
   ;;
@@ -828,18 +848,18 @@ case $OSFAMILY in
       percent=$((count * 100 / total))
       echo $percent
 
-      dnf_retry -y install "$pkg" --allowerasing || true
+      dnf_retry -y install "$pkg" --allowerasing || echo "$pkg" >> "$FAILEDPKGS"
       sleep 0.1
     done
     ) | dialog --title " Installing Giocoso's Software Dependencies " --gauge "\\n\\nInstallation may take some time. Please be patient..." 12 70
 
 	maria_components
-	dnf_retry -y install "$MARIA_PKG" --allowerasing
+	dnf_retry -y install "$MARIA_PKG" --allowerasing || echo "$MARIA_PKG" >> "$FAILEDPKGS"
 	initialise_db
     create_db
     
     # Confirmation when concluded
-    dialog --title " Software Dependencies Installation Completed " --msgbox "\\n\\nAll Giocoso's software dependencies have been installed.\\n\\nClick OK to proceed." 12 70
+    report_failed_pkgs || dialog --title " Software Dependencies Installation Completed " --msgbox "\\n\\nAll Giocoso's software dependencies have been installed.\\n\\nClick OK to proceed." 12 70
   fi
   GREPPROG=grep  SEDPROG=sed  DATEPROG=date  MD5PROG=md5sum FDPROG=fd
   ;;
@@ -928,12 +948,12 @@ case $OSFAMILY in
       echo $percent
 
       if [[ $pkgmanager == "homebrew" ]]; then
-        brew install --quiet "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 
+        mac_install "$pkg" || echo "$pkg" >> "$FAILEDPKGS"
       elif [[ $pkgmanager == "macports" ]]; then
         if [[ $pkg == "wezterm" ]]; then
-          wezterm_app_install >> "$CONFDIR/txt/install-log.txt" 2>&1
+          wezterm_app_install >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "wezterm" >> "$FAILEDPKGS"
         else
-          sudo port -N install "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 
+          mac_install "$pkg" || echo "$pkg" >> "$FAILEDPKGS"
         fi
       fi
       
@@ -943,18 +963,18 @@ case $OSFAMILY in
 
 	maria_components
     if [[ $pkgmanager == "homebrew" ]]; then
-      brew install --quiet "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 
+      brew install --quiet "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$MARIA_PKG" >> "$FAILEDPKGS"
     elif [[ $pkgmanager == "macports" ]]; then
       # MacPorts has no ready-built MariaDB, so it compiles it: explain the long wait, which would otherwise look like a hang
       dialog --title " Installing the MariaDB Database " --infobox "\\n\\nNow installing the MariaDB database. MacPorts has to build this from source, which can take 30 minutes or more on some Macs.\\n\\nPlease be patient and press no keys until prompted." 12 70
-      sudo port -N install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 
+      sudo port -N install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$MARIA_PKG" >> "$FAILEDPKGS"
 	  sudo port select mysql mariadb-11.4  >> "$CONFDIR/txt/install-log.txt" 2>&1 
     fi
     initialise_db
     create_db
     
     # Confirmation when concluded
-    dialog --title " Software Dependencies Installation Completed " --msgbox "\\n\\nAll Giocoso's software dependencies have been installed.\\n\\nClick OK to proceed." 12 70
+    report_failed_pkgs || dialog --title " Software Dependencies Installation Completed " --msgbox "\\n\\nAll Giocoso's software dependencies have been installed.\\n\\nClick OK to proceed." 12 70
   fi
   GREPPROG=ggrep  SEDPROG=gsed  DATEPROG=gdate  MD5PROG=md5sum  FDPROG=fd
   ;;
