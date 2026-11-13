@@ -212,14 +212,14 @@ touch "$CONFDIR/txt/nowplaying.txt"
     
 if [[ $(uname -a) == *"Darwin"* ]]; then
   if [[ $FORCE_PULSE -eq 1 ]]; then 
-    PULSE_SERVER=$PULSESERVER $FFMPEG -stats_period 1 -f concat -safe 0 -i "$CONFDIR/txt/giocoso-tracklist.txt" -af "$AF_FILTER" -max_muxing_queue_size 4096 -f pulse "default?async=1" |& gawk -v RS="\r" -v FS='[= ]' 'NR > 1 && /time=/ {print $4; fflush("/dev/stdout")}' > "$CONFDIR/txt/playcounter.txt" & source "$CONFDIR/bin/giocount.sh" "${PLAYSECS%.*}"
+    "${PULSEENV[@]}" $FFMPEG -stats_period 1 -f concat -safe 0 -i "$CONFDIR/txt/giocoso-tracklist.txt" -af "$AF_FILTER" -max_muxing_queue_size 4096 -f pulse "default?async=1" |& gawk -v RS="\r" -v FS='[= ]' 'NR > 1 && /time=/ {print $4; fflush("/dev/stdout")}' > "$CONFDIR/txt/playcounter.txt" & source "$CONFDIR/bin/giocount.sh" "${PLAYSECS%.*}"
   else
     $FFMPEG -stats_period 1 -f concat -safe 0 -i "$CONFDIR/txt/giocoso-tracklist.txt" -af "$AF_FILTER" -max_muxing_queue_size 4096 -f audiotoolbox - |& gawk -v RS="\r" -v FS='[= ]' 'NR > 1 && /time=/ {print $4; fflush("/dev/stdout")}' > "$CONFDIR/txt/playcounter.txt" & source "$CONFDIR/bin/giocount.sh" "${PLAYSECS%.*}"
   fi
 elif [[ $(uname -a) == *"microsoft"* ]]; then
   AUDIODEVICE="PulseAudio"
   if [[ $FORCE_PULSE -eq 1 ]]; then
-    PULSE_SERVER=$PULSESERVER $FFMPEG -stats_period 1 -f concat -safe 0 -i "$CONFDIR/txt/giocoso-tracklist.txt" -af "$AF_FILTER" -max_muxing_queue_size 4096 -f pulse - |& gawk -v RS="\r" -v FS='[= ]' 'NR > 1 && /time=/ {print $4; fflush("/dev/stdout")}' > "$CONFDIR/txt/playcounter.txt" & source "$CONFDIR/bin/giocount.sh" "${PLAYSECS%.*}"
+    "${PULSEENV[@]}" $FFMPEG -stats_period 1 -f concat -safe 0 -i "$CONFDIR/txt/giocoso-tracklist.txt" -af "$AF_FILTER" -max_muxing_queue_size 4096 -f pulse - |& gawk -v RS="\r" -v FS='[= ]' 'NR > 1 && /time=/ {print $4; fflush("/dev/stdout")}' > "$CONFDIR/txt/playcounter.txt" & source "$CONFDIR/bin/giocount.sh" "${PLAYSECS%.*}"
   else
     $FFMPEG -stats_period 1 -f concat -safe 0 -i "$CONFDIR/txt/giocoso-tracklist.txt" -af "$AF_FILTER" -max_muxing_queue_size 4096 -f pulse - |& gawk -v RS="\r" -v FS='[= ]' 'NR > 1 && /time=/ {print $4; fflush("/dev/stdout")}' > "$CONFDIR/txt/playcounter.txt" & source "$CONFDIR/bin/giocount.sh" "${PLAYSECS%.*}"
   fi
@@ -227,7 +227,7 @@ else
   if [[ $FORCE_PULSE -eq 1 ]]; then
     AUDIODEVICE="PulseAudio"
     # Do this if running on Linux but use of Pulseaudio is forced in configuration file
-    PULSE_SERVER=$PULSESERVER $FFMPEG -stats_period 1 -f concat -safe 0 -i "$CONFDIR/txt/giocoso-tracklist.txt" -af "$AF_FILTER" -max_muxing_queue_size 4096 -f pulse - |& gawk -v RS="\r" -v FS='[= ]' 'NR > 1 && /time=/ {print $4; fflush("/dev/stdout")}' > "$CONFDIR/txt/playcounter.txt" & source "$CONFDIR/bin/giocount.sh" "${PLAYSECS%.*}"
+    "${PULSEENV[@]}" $FFMPEG -stats_period 1 -f concat -safe 0 -i "$CONFDIR/txt/giocoso-tracklist.txt" -af "$AF_FILTER" -max_muxing_queue_size 4096 -f pulse - |& gawk -v RS="\r" -v FS='[= ]' 'NR > 1 && /time=/ {print $4; fflush("/dev/stdout")}' > "$CONFDIR/txt/playcounter.txt" & source "$CONFDIR/bin/giocount.sh" "${PLAYSECS%.*}"
   else
     # Do this if running on Linux and Pulseaudio hasn't been forced on
     $FFMPEG -stats_period 1 -f concat -safe 0 -i "$CONFDIR/txt/giocoso-tracklist.txt" -af "$AF_FILTER" -max_muxing_queue_size 4096 -f alsa "$AUDIODEVICE" |& gawk -v RS="\r" -v FS='[= ]' 'NR > 1 && /time=/ {print $4; fflush("/dev/stdout")}' > "$CONFDIR/txt/playcounter.txt" & source "$CONFDIR/bin/giocount.sh" "${PLAYSECS%.*}"
@@ -324,14 +324,14 @@ if [[ ${ANNOUNCEPLAY^^} == "YES" ]]; then
   # Play some 'actively silent' sound to wake up the DAC before throwing voices at it	  
   if [[ $(uname -a) == *"Darwin"* ]]; then
     if [[ $FORCE_PULSE -eq 1 ]]; then 
-      PULSE_SERVER=$PULSESERVER "$FFMPEG" -i "$CONFDIR/art/silence.flac" -f pulse - > /dev/null 2>&1
+      "${PULSEENV[@]}" "$FFMPEG" -i "$CONFDIR/art/silence.flac" -f pulse - > /dev/null 2>&1
     else
       "$FFMPEG" -i "$CONFDIR/art/silence.flac" -f audiotoolbox - > /dev/null 2>&1
     fi
   elif [[ $(uname -a) == *"microsoft"* ]]; then
     AUDIODEVICE="PulseAudio"
   	if [[ $FORCE_PULSE -eq 1 ]]; then
-  	  PULSE_SERVER=$PULSESERVER "$FFMPEG" -i "$CONFDIR/art/silence.flac" -f pulse - > /dev/null 2>&1
+  	  "${PULSEENV[@]}" "$FFMPEG" -i "$CONFDIR/art/silence.flac" -f pulse - > /dev/null 2>&1
   	else
   	  "$FFMPEG" -i "$CONFDIR/art/silence.flac" -f pulse - > /dev/null 2>&1
   	fi
@@ -339,7 +339,7 @@ if [[ ${ANNOUNCEPLAY^^} == "YES" ]]; then
   	if [[ $FORCE_PULSE -eq 1 ]]; then
   	  AUDIODEVICE="PulseAudio"
   	  # Do this if running on Linux but use of Pulseaudio is forced in configuration file
-  	  PULSE_SERVER=$PULSESERVER "$FFMPEG" -i "$CONFDIR/art/silence.flac" -f pulse - > /dev/null 2>&1
+  	  "${PULSEENV[@]}" "$FFMPEG" -i "$CONFDIR/art/silence.flac" -f pulse - > /dev/null 2>&1
   	else
   	  # Do this if running on Linux and Pulseaudio hasn't been forced on
   	  "$FFMPEG" -i "$CONFDIR/art/silence.flac" -f alsa "$AUDIODEVICE" > /dev/null 2>&1
