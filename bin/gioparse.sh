@@ -133,6 +133,10 @@ if [[ -f "$CONFDIR/txt/giocoso.conf" ]]; then
   else
     PULSESERVER=""
   fi
+  # PULSEENV goes in front of every PulseAudio ffmpeg command. It names a server only when one on another machine has
+  # been configured: setting PULSE_SERVER at all, even to "" or 127.0.0.1, sends PulseAudio over the network rather
+  # than the local socket, and a desktop's sound system (PipeWire) doesn't normally listen there, so nothing plays
+  if [[ -n $PULSESERVER && $PULSESERVER != "127.0.0.1" ]]; then PULSEENV=(env "PULSE_SERVER=$PULSESERVER"); else PULSEENV=(); fi
 
   # The MySQL Port parameter, if set, needs to be numeric and defaults to 3306
   if ! [[ -z $MYSQLPRT ]]; then

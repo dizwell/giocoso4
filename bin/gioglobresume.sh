@@ -257,14 +257,14 @@ if [[ $($METAFLAC --show-md5sum "$f" 2>&1 | $GREPPROG -i error | wc -l) -eq 0 ]]
   
   if [[ $(uname -a) == *"Darwin"* ]]; then
     if [[ $FORCE_PULSE -eq 1 ]]; then 
-      PULSE_SERVER=$PULSESERVER $FFMPEG -stats_period 1 -f concat -safe 0 -ss "$GRESUMEFROM" -i "$CONFDIR/txt/giocoso-tracklist.txt" -af "$AF_FILTER" -max_muxing_queue_size 4096 -f pulse "default?async=1" |& gawk -v RS="\r" -v FS='[= ]' 'NR > 1 && /time=/ {print $4; fflush("/dev/stdout")}' > "$CONFDIR/txt/playcounter.txt" & source "$CONFDIR/bin/giocount.sh" "${PLAYSECS%.*}"
+      "${PULSEENV[@]}" $FFMPEG -stats_period 1 -f concat -safe 0 -ss "$GRESUMEFROM" -i "$CONFDIR/txt/giocoso-tracklist.txt" -af "$AF_FILTER" -max_muxing_queue_size 4096 -f pulse "default?async=1" |& gawk -v RS="\r" -v FS='[= ]' 'NR > 1 && /time=/ {print $4; fflush("/dev/stdout")}' > "$CONFDIR/txt/playcounter.txt" & source "$CONFDIR/bin/giocount.sh" "${PLAYSECS%.*}"
     else
       $FFMPEG -stats_period 1 -f concat -safe 0 -ss "$GRESUMEFROM" -i "$CONFDIR/txt/giocoso-tracklist.txt" -af "$AF_FILTER" -max_muxing_queue_size 4096 -f audiotoolbox - |& gawk -v RS="\r" -v FS='[= ]' 'NR > 1 && /time=/ {print $4; fflush("/dev/stdout")}' > "$CONFDIR/txt/playcounter.txt" & source "$CONFDIR/bin/giocount.sh" "${PLAYSECS%.*}"
     fi
   elif [[ $(uname -a) == *microsoft* ]]; then
     AUDIODEVICE="PulseAudio"
     if [[ $FORCE_PULSE -eq 1 ]]; then
-      PULSE_SERVER=$PULSESERVER $FFMPEG -stats_period 1 -f concat -safe 0 -ss "$GRESUMEFROM" -i "$CONFDIR/txt/giocoso-tracklist.txt" -af "$AF_FILTER" -max_muxing_queue_size 4096 -f pulse - |& gawk -v RS="\r" -v FS='[= ]' 'NR > 1 && /time=/ {print $4; fflush("/dev/stdout")}' > "$CONFDIR/txt/playcounter.txt" & source "$CONFDIR/bin/giocount.sh" "${PLAYSECS%.*}"
+      "${PULSEENV[@]}" $FFMPEG -stats_period 1 -f concat -safe 0 -ss "$GRESUMEFROM" -i "$CONFDIR/txt/giocoso-tracklist.txt" -af "$AF_FILTER" -max_muxing_queue_size 4096 -f pulse - |& gawk -v RS="\r" -v FS='[= ]' 'NR > 1 && /time=/ {print $4; fflush("/dev/stdout")}' > "$CONFDIR/txt/playcounter.txt" & source "$CONFDIR/bin/giocount.sh" "${PLAYSECS%.*}"
     else
       $FFMPEG -stats_period 1 -f concat -safe 0 -ss "$GRESUMEFROM" -i "$CONFDIR/txt/giocoso-tracklist.txt" -af "$AF_FILTER" -max_muxing_queue_size 4096 -f pulse - |& gawk -v RS="\r" -v FS='[= ]' 'NR > 1 && /time=/ {print $4; fflush("/dev/stdout")}' > "$CONFDIR/txt/playcounter.txt" & source "$CONFDIR/bin/giocount.sh" "${PLAYSECS%.*}"
     fi
