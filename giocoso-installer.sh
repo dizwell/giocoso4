@@ -137,6 +137,7 @@ fi
 function downloads {
 # 4. Fetch Giocoso components: BIN files first
 components=(gioadvsql.sh gioart.sh gioaudtst.sh giobkpdb.sh giocolour.sh gioconfconstruct.sh giocontrol.sh giocount.sh giodefsrch.sh giodirselect.sh gioexcludes.sh gioexempts.sh giofilter.sh giofunctions.sh gioglobresume.sh giomenudraw.sh giomenuoptions.sh giominifilter.sh giominip.sh giomplay.sh giooscheck.sh giooutput.sh gioparse.sh giophoneme.sh gioplay.sh gioplaylist.sh giopsink.sh gioqrydel.sh giorefreshdb.sh gioretnote.sh giorptadvsql.sh giorptaggstats.sh giorptallrecs.sh giorptdevos.sh giorptexcludes.sh giorptlastplayed.sh giorptplayhist.sh giorpttopcomp.sh giospin.sh giosql.sh giotput.sh)
+BINCOMPONENTS=("${components[@]}")                                  # Remembered for the final installation check
 total=${#components[@]}
 count=0
 (
@@ -420,6 +421,58 @@ fi
 dialog --title " Software Components Completed " --msgbox "\\n\\nAll Giocoso's components have now been installed successfully.\\n\\nPress OK to quit back to the command line." 12 70
 }
 
+function verify_install {
+# A quick, silent check of Giocoso's key abilities, reported as a checklist (as Semplice's installer does)
+local P A T="$NEWCONF/art/testaudio.flac" TMPIMG="/tmp/giocheck-$$.jpg" DBCLIENT DIALOGTEXT ALLOK=1 c
+case "$(uname -s)" in Darwin) P="macos" ;; *) P="linux" ;; esac
+case "$(uname -m)" in arm64|aarch64) A="arm64" ;; *) A="x86_64" ;; esac
+local X="$NEWCONF/exec"
+
+local BASICOK=1                                             # Every bin script present, plus the main script and its command link
+for c in "${BINCOMPONENTS[@]}"; do [[ -f $NEWCONF/bin/$c ]] || BASICOK=0; done
+[[ -f $NEWCONF/giocoso4.sh ]] || BASICOK=0
+[[ -e /usr/local/bin/giocoso || -e /usr/bin/giocoso ]] || BASICOK=0
+
+local PLAYOK=0                                              # ffmpeg can decode Giocoso's own test file (silently)
+"$X/ffmpeg-$P-$A" -v error -nostdin -i "$T" -f null - >/dev/null 2>&1 && PLAYOK=1
+
+local ARTOK=0                                               # magick can make a picture, and img2sixel can convert it for display
+"$X/magick-$P-$A" -size 64x64 xc:steelblue "$TMPIMG" >/dev/null 2>&1 && "$X/img2sixel-$P-$A" "$TMPIMG" >/dev/null 2>&1 && ARTOK=1
+rm -f "$TMPIMG"
+
+local TAGOK=0                                               # metaflac can read the test file's tags
+"$X/metaflac-$P-$A" --list "$T" >/dev/null 2>&1 && TAGOK=1
+
+local SPEAKOK=0                                             # The announcements' speech program
+if [[ $P == "macos" ]]; then command -v say >/dev/null 2>&1 && SPEAKOK=1; else command -v espeak-ng >/dev/null 2>&1 && SPEAKOK=1; fi
+
+local DBOK=0                                                # A Server should accept Giocoso's own login; a Client is pointed at its server later
+DBCLIENT=$(command -v mariadb || command -v mysql)
+if [[ $GIOSERVER == "yes" ]]; then
+  [[ -n $DBCLIENT ]] && "$DBCLIENT" --connect-timeout=3 -u giocoso4 -pgiocoso4 -h 127.0.0.1 -P 3306 -D giocoso4 $SSL_OPTS -e "select 1" >/dev/null 2>&1 && DBOK=1
+else
+  [[ -n $DBCLIENT ]] && DBOK=2
+fi
+
+DIALOGTEXT="\nThe Giocoso installation has now completed. Its current status is as follows:\n"
+if [[ $BASICOK -eq 1 ]]; then DIALOGTEXT+="\n  ✓ Your basic Giocoso installation is fine"; else DIALOGTEXT+="\n  ✘ Some of Giocoso's own files are missing"; ALLOK=0; fi
+if [[ $PLAYOK -eq 1 ]]; then DIALOGTEXT+="\n  ✓ Giocoso can play music"; else DIALOGTEXT+="\n  ✘ Giocoso cannot play music (ffmpeg failed its test)"; ALLOK=0; fi
+if [[ $ARTOK -eq 1 ]]; then DIALOGTEXT+="\n  ✓ Giocoso can display album art"; else DIALOGTEXT+="\n  ✘ Giocoso cannot display album art"; ALLOK=0; fi
+if [[ $TAGOK -eq 1 ]]; then DIALOGTEXT+="\n  ✓ Giocoso can read FLAC tags"; else DIALOGTEXT+="\n  ✘ Giocoso cannot read FLAC tags"; ALLOK=0; fi
+case $DBOK in
+  1) DIALOGTEXT+="\n  ✓ Giocoso's database is up and accepting connections" ;;
+  2) DIALOGTEXT+="\n  ✓ The database client is installed: set your server's address in Giocoso's configuration" ;;
+  *) DIALOGTEXT+="\n  ✘ Giocoso cannot connect to its database"; ALLOK=0 ;;
+esac
+if [[ $SPEAKOK -eq 1 ]]; then DIALOGTEXT+="\n  ✓ Giocoso can announce what it plays"; else DIALOGTEXT+="\n  ✘ Giocoso cannot announce what it plays (no speech program)"; ALLOK=0; fi
+if [[ $ALLOK -eq 1 ]]; then
+  DIALOGTEXT+="\n\nGiocoso has full functionality: click OK to return to the command line."
+else
+  DIALOGTEXT+="\n\nSee the Giocoso documentation for how to resolve these issues. Details of any software installation problems are in Giocoso's txt/install-log.txt."
+fi
+dialog --stdout --backtitle "Giocoso Software Install" --title " Software installation status " --msgbox "$DIALOGTEXT" 18 80
+}
+
 function backup_database {
 # Nothing to back up on a first-ever install, so skip creating an empty backup folder
 if [[ ! -d "$NEWCONF" ]] && ! compgen -G "/usr/bin/giocoso*.sh" >/dev/null && ! compgen -G "/usr/local/bin/giocoso*.sh" >/dev/null; then return; fi
@@ -597,6 +650,7 @@ EOF
   
   # 10. Finish Up
   # -----------------------------------------------------
+  verify_install
   echo ""
   echo "Giocoso installation completed. You can close this terminal now."
   reset
