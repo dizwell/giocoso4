@@ -409,6 +409,11 @@ fi
 # Start by checking what operating system we're dealing with, unless we've
 # been told explicitly as part of installer invocation
 # -----------------------------------------------------------------------------
+# A distro named with -d at install time is saved in programvariables.txt: use it again at every start
+if [[ -z $GIODISTRO && -f "$CONFDIR/txt/programvariables.txt" ]]; then
+  GIODISTRO=$(sed -n 's/^GIODISTRO="\(.*\)"$/\1/p' "$CONFDIR/txt/programvariables.txt")
+fi
+
 if [[ -z $GIODISTRO ]]; then
   if [[ -f /etc/os-release ]]; then
     . /etc/os-release
@@ -1051,6 +1056,7 @@ FLAC=$FLAC
 METAFLAC=$METAFLAC
 MAGICK=$MAGICK
 SIXEL=$SIXEL
+GIODISTRO=\"$GIODISTRO\"
 export MAGICK_CONFIGURE_PATH=$CONFDIR/txt" > "$CONFDIR/txt/programvariables.txt"
 
 # The small menu logos are made on each computer from the full-size icons, at the configured size
