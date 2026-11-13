@@ -60,3 +60,15 @@ for item in "${items[@]}"; do
   sep="$gap"
 done
 }
+
+# fit_text TEXT WIDTH: prints TEXT unchanged if it fits in WIDTH characters. Otherwise it is cut at the last
+# whole word that fits, trailing punctuation is tidied away and an ellipsis added. Used where badly-tagged
+# files (performers in the ARTIST tag, say) would otherwise spill across the screen.
+function fit_text {
+local text="$1" width="$2" cut
+if [[ ${#text} -le $width ]]; then printf '%s' "$text"; return; fi
+cut="${text:0:$((width-1))}"
+if [[ "$cut" == *" "* && ${#cut} -gt 10 ]]; then cut="${cut% *}"; fi       # Back up to the last whole word
+cut="${cut%"${cut##*[![:space:][:punct:]]}"}"                               # Strip any trailing spaces or punctuation
+printf '%s…' "$cut"
+}
