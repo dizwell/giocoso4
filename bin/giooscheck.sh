@@ -495,6 +495,21 @@ if [[ $rc -ne 0 ]] && grep -q -i -E "no available formula|not found|no such port
 return $rc
 }
 
+# Is a package installed already, whatever the package manager said? Used so that a package the package manager
+# couldn't reach (because something else held its lock, say) isn't reported as missing when it's actually present
+function pkg_installed {
+case "$OSFAMILY" in
+  DEBIAN|UBUNTU|RASPBIAN) dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "install ok installed" ;;
+  FEDORA|RHEL)            rpm -q "$1" >/dev/null 2>&1 || rpm -q --whatprovides "$1" >/dev/null 2>&1 ;;
+  ARCH)                   pacman -Q "$1" >/dev/null 2>&1 ;;
+  VOID)                   xbps-query "$1" >/dev/null 2>&1 ;;
+  MACOS)
+    if [[ $1 == "wezterm" && -x /Applications/WezTerm.app/Contents/MacOS/wezterm ]]; then return 0; fi
+    if [[ $pkgmanager == "homebrew" ]]; then brew list --formula "$1" >/dev/null 2>&1; else port -q installed "$1" 2>/dev/null | grep -q active; fi ;;
+  *) return 1 ;;
+esac
+}
+
 # Now define the software tools etc. required for each family
 # -----------------------------------------------------------------------------
 case $OSFAMILY in
@@ -531,13 +546,13 @@ case $OSFAMILY in
       percent=$((count * 100 / total))
       echo $percent
 
-      sudo xbps-install -Sf -y "$pkg" >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$pkg" >> "$FAILEDPKGS"
+      sudo xbps-install -Sf -y "$pkg" >> "$CONFDIR/txt/install-log.txt" 2>&1 || pkg_installed "$pkg" || echo "$pkg" >> "$FAILEDPKGS"
       sleep 0.1
     done
     ) | dialog --title " Installing Giocoso's Software Dependencies " --gauge "\\n\\nInstallation may take some time. Please be patient..." 12 70
 
 	maria_components
-	sudo xbps-install -Sf -y "$MARIA_PKG" >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$MARIA_PKG" >> "$FAILEDPKGS"
+	sudo xbps-install -Sf -y "$MARIA_PKG" >> "$CONFDIR/txt/install-log.txt" 2>&1 || pkg_installed "$MARIA_PKG" || echo "$MARIA_PKG" >> "$FAILEDPKGS"
     initialise_db
     create_db
     
@@ -579,13 +594,13 @@ case $OSFAMILY in
       percent=$((count * 100 / total))
       echo $percent
 
-      sudo pacman -S --noconfirm "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$pkg" >> "$FAILEDPKGS"
+      sudo pacman -S --noconfirm "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || pkg_installed "$pkg" || echo "$pkg" >> "$FAILEDPKGS"
       sleep 0.1
     done
     ) | dialog --title " Installing Giocoso's Software Dependencies " --gauge "\\n\\nInstallation may take some time. Please be patient..." 12 70
 
 	maria_components
-	sudo pacman -S --noconfirm "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$MARIA_PKG" >> "$FAILEDPKGS"
+	sudo pacman -S --noconfirm "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || pkg_installed "$MARIA_PKG" || echo "$MARIA_PKG" >> "$FAILEDPKGS"
 	initialise_db
 	create_db
 	
@@ -637,13 +652,13 @@ case $OSFAMILY in
       percent=$((count * 100 / total))
       echo $percent
 
-      sudo apt-get -o DPkg::Lock::Timeout=300 -y install "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$pkg" >> "$FAILEDPKGS"
+      sudo apt-get -o DPkg::Lock::Timeout=300 -y install "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || pkg_installed "$pkg" || echo "$pkg" >> "$FAILEDPKGS"
       sleep 0.1
     done
     ) | dialog --title " Installing Giocoso's Software Dependencies " --gauge "\\n\\nInstallation may take some time. Please be patient..." 12 70
 
 	maria_components
-	sudo apt-get -o DPkg::Lock::Timeout=300 -y install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$MARIA_PKG" >> "$FAILEDPKGS"
+	sudo apt-get -o DPkg::Lock::Timeout=300 -y install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || pkg_installed "$MARIA_PKG" || echo "$MARIA_PKG" >> "$FAILEDPKGS"
 	initialise_db
     create_db
     
@@ -692,12 +707,12 @@ case $OSFAMILY in
       percent=$((count * 100 / total))
       echo $percent
 
-      sudo apt-get -o DPkg::Lock::Timeout=300 -y install "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$pkg" >> "$FAILEDPKGS"
+      sudo apt-get -o DPkg::Lock::Timeout=300 -y install "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || pkg_installed "$pkg" || echo "$pkg" >> "$FAILEDPKGS"
       sleep 0.1
     done
     ) | dialog --title " Installing Giocoso's Software Dependencies " --gauge "\\n\\nInstallation may take some time. Please be patient..." 12 70
 	maria_components
-	sudo apt-get -o DPkg::Lock::Timeout=300 -y install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$MARIA_PKG" >> "$FAILEDPKGS"
+	sudo apt-get -o DPkg::Lock::Timeout=300 -y install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || pkg_installed "$MARIA_PKG" || echo "$MARIA_PKG" >> "$FAILEDPKGS"
 	initialise_db
 	create_db
 	
@@ -740,12 +755,12 @@ case $OSFAMILY in
       percent=$((count * 100 / total))
       echo $percent
 
-      sudo apt-get -o DPkg::Lock::Timeout=300 -y install "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$pkg" >> "$FAILEDPKGS"
+      sudo apt-get -o DPkg::Lock::Timeout=300 -y install "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || pkg_installed "$pkg" || echo "$pkg" >> "$FAILEDPKGS"
       sleep 0.1
     done
     ) | dialog --title " Installing Giocoso's Software Dependencies " --gauge "\\n\\nInstallation may take some time. Please be patient..." 12 70
 	maria_components
-	sudo apt-get -o DPkg::Lock::Timeout=300 -y install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$MARIA_PKG" >> "$FAILEDPKGS"
+	sudo apt-get -o DPkg::Lock::Timeout=300 -y install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || pkg_installed "$MARIA_PKG" || echo "$MARIA_PKG" >> "$FAILEDPKGS"
 	initialise_db
 	create_db
 	
@@ -790,13 +805,13 @@ case $OSFAMILY in
       percent=$((count * 100 / total))
       echo $percent
 
-      dnf_retry -y install "$pkg" --allowerasing || echo "$pkg" >> "$FAILEDPKGS"
+      dnf_retry -y install "$pkg" --allowerasing || pkg_installed "$pkg" || echo "$pkg" >> "$FAILEDPKGS"
       sleep 0.1
     done
     ) | dialog --title " Installing Giocoso's Software Dependencies " --gauge "\\n\\nInstallation may take some time. Please be patient..." 12 70
 
 	maria_components
-	dnf_retry -y install "$MARIA_PKG" --allowerasing || echo "$MARIA_PKG" >> "$FAILEDPKGS"
+	dnf_retry -y install "$MARIA_PKG" --allowerasing || pkg_installed "$MARIA_PKG" || echo "$MARIA_PKG" >> "$FAILEDPKGS"
 	initialise_db
 	create_db
 	
@@ -848,13 +863,13 @@ case $OSFAMILY in
       percent=$((count * 100 / total))
       echo $percent
 
-      dnf_retry -y install "$pkg" --allowerasing || echo "$pkg" >> "$FAILEDPKGS"
+      dnf_retry -y install "$pkg" --allowerasing || pkg_installed "$pkg" || echo "$pkg" >> "$FAILEDPKGS"
       sleep 0.1
     done
     ) | dialog --title " Installing Giocoso's Software Dependencies " --gauge "\\n\\nInstallation may take some time. Please be patient..." 12 70
 
 	maria_components
-	dnf_retry -y install "$MARIA_PKG" --allowerasing || echo "$MARIA_PKG" >> "$FAILEDPKGS"
+	dnf_retry -y install "$MARIA_PKG" --allowerasing || pkg_installed "$MARIA_PKG" || echo "$MARIA_PKG" >> "$FAILEDPKGS"
 	initialise_db
     create_db
     
@@ -948,12 +963,12 @@ case $OSFAMILY in
       echo $percent
 
       if [[ $pkgmanager == "homebrew" ]]; then
-        mac_install "$pkg" || echo "$pkg" >> "$FAILEDPKGS"
+        mac_install "$pkg" || pkg_installed "$pkg" || echo "$pkg" >> "$FAILEDPKGS"
       elif [[ $pkgmanager == "macports" ]]; then
         if [[ $pkg == "wezterm" ]]; then
-          wezterm_app_install >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "wezterm" >> "$FAILEDPKGS"
+          wezterm_app_install >> "$CONFDIR/txt/install-log.txt" 2>&1 || pkg_installed wezterm || echo "wezterm" >> "$FAILEDPKGS"
         else
-          mac_install "$pkg" || echo "$pkg" >> "$FAILEDPKGS"
+          mac_install "$pkg" || pkg_installed "$pkg" || echo "$pkg" >> "$FAILEDPKGS"
         fi
       fi
       
@@ -963,11 +978,11 @@ case $OSFAMILY in
 
 	maria_components
     if [[ $pkgmanager == "homebrew" ]]; then
-      brew install --quiet "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$MARIA_PKG" >> "$FAILEDPKGS"
+      brew install --quiet "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || pkg_installed "$MARIA_PKG" || echo "$MARIA_PKG" >> "$FAILEDPKGS"
     elif [[ $pkgmanager == "macports" ]]; then
       # MacPorts has no ready-built MariaDB, so it compiles it: explain the long wait, which would otherwise look like a hang
       dialog --title " Installing the MariaDB Database " --infobox "\\n\\nNow installing the MariaDB database. MacPorts has to build this from source, which can take 30 minutes or more on some Macs.\\n\\nPlease be patient and press no keys until prompted." 12 70
-      sudo port -N install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$MARIA_PKG" >> "$FAILEDPKGS"
+      sudo port -N install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || pkg_installed "$MARIA_PKG" || echo "$MARIA_PKG" >> "$FAILEDPKGS"
 	  sudo port select mysql mariadb-11.4  >> "$CONFDIR/txt/install-log.txt" 2>&1 
     fi
     initialise_db
