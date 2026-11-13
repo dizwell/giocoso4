@@ -646,17 +646,8 @@ case $OSFAMILY in
 
   DEBIAN)
   if [[ $CHECKONLY -eq 0 ]]; then
-    # If sudo doesn't work, grant the user SUDO privileges. Otherwise, just get on with it...
     if ! sudo -n true 2>/dev/null; then
-      tput cup 8 4; tput setaf $INFOTEXT; echo -en "Please supply the "; tput setaf $ALERT; echo -en "\e[4mroot user\e[24m"; tput setaf $INFOTEXT; echo -en " password when prompted. "
-      su -c "
-      echo \"$USER ALL=(ALL:ALL) ALL\" >/etc/sudoers.d/$USER
-      chmod 440 /etc/sudoers.d/$USER
-      "
-    fi
-
-    if ! sudo -n true 2>/dev/null; then
-      tput setaf ${ALERT:-1}; sudo -p $'\r    Now supply the sudo password for user %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }; tput setaf ${MAINTEXT:-11}
+      tput setaf ${ALERT:-1}; sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }; tput setaf ${MAINTEXT:-11}
     fi
 
     # Keep sudo status for as long as needed
@@ -704,17 +695,8 @@ case $OSFAMILY in
 
   RASPBIAN)
   if [[ $CHECKONLY -eq 0 ]]; then
-    # If sudo doesn't work, grant the user SUDO privileges. Otherwise, just get on with it...
     if ! sudo -n true 2>/dev/null; then
-      tput cup 8 4; tput setaf $INFOTEXT; echo -en "Please supply the "; tput setaf $ALERT; echo -en "\e[4mroot user\e[24m"; tput setaf $INFOTEXT; echo -en " password when prompted. "
-      su -c "
-      echo \"$USER ALL=(ALL:ALL) ALL\" >/etc/sudoers.d/$USER
-      chmod 440 /etc/sudoers.d/$USER
-      "
-    fi
-
-    if ! sudo -n true 2>/dev/null; then
-      tput setaf ${ALERT:-1}; sudo -p $'\r    Now supply the sudo password for user %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }; tput setaf ${MAINTEXT:-11}
+      tput setaf ${ALERT:-1}; sudo -p $'\r    Please supply the sudo password for %u: ' -v || { echo "    Failed to acquire sudo privileges, so quitting..."; rm -f "$INSTALLERFILE"; exit 1; }; tput setaf ${MAINTEXT:-11}
     fi
 
     # Keep sudo status for as long as needed
