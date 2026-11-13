@@ -618,11 +618,11 @@ case $OSFAMILY in
     wget -qO- https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /usr/share/keyrings/wezterm-fury.gpg >/dev/null 2>&1
     echo 'deb [signed-by=/usr/share/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list >/dev/null
     sudo chmod 644 /usr/share/keyrings/wezterm-fury.gpg >/dev/null 2>&1
-    sudo apt-get update -qq
+    sudo apt-get -o DPkg::Lock::Timeout=300 update -qq
     pending=$(apt-get -s upgrade | awk '/^Inst / {count++} END {print count+0}')
     check_updates
 
-    sudo apt-get -y install dialog > /dev/null 2>&1
+    sudo apt-get -o DPkg::Lock::Timeout=300 -y install dialog > /dev/null 2>&1
     determine_role
 	
     # Define what's required
@@ -637,13 +637,13 @@ case $OSFAMILY in
       percent=$((count * 100 / total))
       echo $percent
 
-      sudo apt-get -y install "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$pkg" >> "$FAILEDPKGS"
+      sudo apt-get -o DPkg::Lock::Timeout=300 -y install "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$pkg" >> "$FAILEDPKGS"
       sleep 0.1
     done
     ) | dialog --title " Installing Giocoso's Software Dependencies " --gauge "\\n\\nInstallation may take some time. Please be patient..." 12 70
 
 	maria_components
-	sudo apt-get -y install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$MARIA_PKG" >> "$FAILEDPKGS"
+	sudo apt-get -o DPkg::Lock::Timeout=300 -y install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$MARIA_PKG" >> "$FAILEDPKGS"
 	initialise_db
     create_db
     
@@ -673,11 +673,11 @@ case $OSFAMILY in
     sudo timedatectl set-ntp true >/dev/null 2>&1
     echo ""
     echo "    Getting the Giocoso installer ready. Please bear with us for a few moments..."
-    sudo apt-get update -qq
+    sudo apt-get -o DPkg::Lock::Timeout=300 update -qq
     pending=$(apt-get -s upgrade | awk '/^Inst / {count++} END {print count+0}')
     check_updates
     
-    sudo apt-get -y install dialog > /dev/null 2>&1
+    sudo apt-get -o DPkg::Lock::Timeout=300 -y install dialog > /dev/null 2>&1
     determine_role
 	
     # Define what's required
@@ -692,12 +692,12 @@ case $OSFAMILY in
       percent=$((count * 100 / total))
       echo $percent
 
-      sudo apt-get -y install "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$pkg" >> "$FAILEDPKGS"
+      sudo apt-get -o DPkg::Lock::Timeout=300 -y install "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$pkg" >> "$FAILEDPKGS"
       sleep 0.1
     done
     ) | dialog --title " Installing Giocoso's Software Dependencies " --gauge "\\n\\nInstallation may take some time. Please be patient..." 12 70
 	maria_components
-	sudo apt-get -y install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$MARIA_PKG" >> "$FAILEDPKGS"
+	sudo apt-get -o DPkg::Lock::Timeout=300 -y install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$MARIA_PKG" >> "$FAILEDPKGS"
 	initialise_db
 	create_db
 	
@@ -721,11 +721,11 @@ case $OSFAMILY in
     wget -qO- https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /usr/share/keyrings/wezterm-fury.gpg >/dev/null 2>&1
     echo 'deb [signed-by=/usr/share/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list > /dev/null
     sudo chmod 644 /usr/share/keyrings/wezterm-fury.gpg >/dev/null 2>&1
-    sudo apt-get update -qq
+    sudo apt-get -o DPkg::Lock::Timeout=300 update -qq
     pending=$(apt-get -s upgrade | awk '/^Inst / {count++} END {print count+0}')
     check_updates
 
-    sudo apt-get -y install dialog > /dev/null 2>&1
+    sudo apt-get -o DPkg::Lock::Timeout=300 -y install dialog > /dev/null 2>&1
     determine_role
 	
     # Define what's required
@@ -740,12 +740,12 @@ case $OSFAMILY in
       percent=$((count * 100 / total))
       echo $percent
 
-      sudo apt-get -y install "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$pkg" >> "$FAILEDPKGS"
+      sudo apt-get -o DPkg::Lock::Timeout=300 -y install "$pkg"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$pkg" >> "$FAILEDPKGS"
       sleep 0.1
     done
     ) | dialog --title " Installing Giocoso's Software Dependencies " --gauge "\\n\\nInstallation may take some time. Please be patient..." 12 70
 	maria_components
-	sudo apt-get -y install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$MARIA_PKG" >> "$FAILEDPKGS"
+	sudo apt-get -o DPkg::Lock::Timeout=300 -y install "$MARIA_PKG"  >> "$CONFDIR/txt/install-log.txt" 2>&1 || echo "$MARIA_PKG" >> "$FAILEDPKGS"
 	initialise_db
 	create_db
 	
