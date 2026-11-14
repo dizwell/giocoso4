@@ -92,7 +92,7 @@ else
   CONFDURATIONS="${txtparams[1]}"; if [[ -z $CONFDURATIONS ]]; then CONFDURATIONS=minutes; fi
   CONFBACKUPDIR="${txtparams[2]}"
   CONFMYSQLIP="${txtparams[3]}"
-  CONFMYSQLPRT="${txtparams[4]}"; if [[ -z $CONFMYSQLPRT ]]; then CONFMYSQLPRT=3306; fi
+  CONFMYSQLPRT="${txtparams[4]}"; if [[ $CONFMYSQLPRT =~ ^[0-9]+$ ]]; then CONFMYSQLPRT=$((10#$CONFMYSQLPRT)); else CONFMYSQLPRT=3306; fi
   CONFFILEPREFIX="${txtparams[5]}"
   CONFBROWZ="${txtparams[6]}"
   CONFPULSE="${txtparams[7]}"
@@ -150,7 +150,13 @@ else
   CONFARTSIZE="${numparams[3]}"     ; if [[ ! $CONFARTSIZE =~ ^[0-9]+$ ]]; then CONFARTSIZE=340; fi
   CONFLOGOSIZE="${numparams[4]}"    ; if [[ ! $CONFLOGOSIZE =~ ^[0-9]+$ ]]; then CONFLOGOSIZE=110; fi
   CONFLOGOPOS="${numparams[5]}"     ; if [[ ! $CONFLOGOPOS =~ ^-?[0-9]+$ ]]; then CONFLOGOPOS=0; fi
-  CONFWEZFNTSZ="${numparams[6]}"    ; if [[ ! $CONFWEZFNTSZ =~ ^[0-9]+$ ]]; then CONFWEZFNTSZ=12; elif [[ $CONFWEZFNTSZ -gt 32 ]]; then CONFWEZFNTSZ=12; elif [[ $CONFWEZFNTSZ -lt 8 ]]; then CONFWEZFNTSZ=12; fi
+  # Save every number in plain base-10 form, so 08 or 09 (invalid octal to Bash) are written as 8 and 9
+  for numname in CONFSELECTIONS CONFTIMEBAR CONFCOUNT CONFARTSIZE CONFLOGOSIZE; do
+    printf -v "$numname" '%d' "$((10#${!numname}))"
+  done
+  if [[ $CONFLOGOPOS == -* ]]; then CONFLOGOPOS=$(( -10#${CONFLOGOPOS#-} )); else CONFLOGOPOS=$(( 10#$CONFLOGOPOS )); fi
+  unset numname
+  CONFWEZFNTSZ="${numparams[6]}"    ; [[ $CONFWEZFNTSZ =~ ^[0-9]+$ ]] && CONFWEZFNTSZ=$((10#$CONFWEZFNTSZ)); if [[ ! $CONFWEZFNTSZ =~ ^[0-9]+$ ]]; then CONFWEZFNTSZ=12; elif [[ $CONFWEZFNTSZ -gt 32 ]]; then CONFWEZFNTSZ=12; elif [[ $CONFWEZFNTSZ -lt 8 ]]; then CONFWEZFNTSZ=12; fi
 fi
 unset exitStatus
 }
@@ -180,7 +186,7 @@ else
   CONFPULSEAUDIO="${yornparams[1]}"; 	if [[ -z $CONFPULSEAUDIO ]]; then CONFPULSEAUDIO="no"; fi; 	if [[ ${CONFPULSEAUDIO^^} == *Y* ]]; then CONFPULSEAUDIO="yes"; else CONFPULSEAUDIO="no"; fi
   CONFRPG="${yornparams[2]}"; 			if [[ -z $CONFRPG ]]; then CONFRPG="yes"; fi; 				if [[ ${CONFRPG^^} == *N* ]]; then CONFRPG="no"; else CONFRPG="yes";fi
   CONFVOICE="${yornparams[3]}"; 		if [[ -z $CONFVOICE ]]; then CONFVOICE="no"; fi; 				if [[ ${CONFVOICE^^} == *Y* ]]; then CONFVOICE="yes"; else CONFVOICE="no";fi
-  CONFVSPEED="${yornparams[4]}"; 		if [[ -z $CONFVSPEED ]]; then CONFVSPEED="160"; fi
+  CONFVSPEED="${yornparams[4]}"; 		if [[ $CONFVSPEED =~ ^[0-9]+$ ]]; then CONFVSPEED=$((10#$CONFVSPEED)); else CONFVSPEED="160"; fi
 fi
 CONFIG_COMPLETE=1
 unset exitStatus
