@@ -19,6 +19,18 @@ if [[ -z $VSPEED ]]; then VSPEED=160; fi
 if [[ -f "$CONFDIR/txt/giocoso.conf" ]]; then
   source "$CONFDIR/txt/giocoso.conf"
 
+  # Whole numbers typed with a leading zero (08, 09) would be read by Bash as (invalid) octal, so read
+  # every numeric setting as base 10 first: 08 becomes 8. Anything that isn't a whole number is left
+  # for the checks below to replace with its default. LOGOPOS alone may be negative.
+  for numname in SELECTIONS TIMEBAR COUNTDOWN VSPEED MYSQLPRT ARTSIZE LOGOSIZE WEZFNTSZ; do
+    numvalue=${!numname}
+    if [[ $numvalue =~ ^[0-9]+$ ]]; then printf -v "$numname" '%d' "$((10#$numvalue))"; fi
+  done
+  if [[ $LOGOPOS =~ ^-?[0-9]+$ ]]; then
+    if [[ $LOGOPOS == -* ]]; then LOGOPOS=$(( -10#${LOGOPOS#-} )); else LOGOPOS=$(( 10#$LOGOPOS )); fi
+  fi
+  unset numname numvalue
+
   if ! [[ -z $SELECTIONS ]]; then 							# Selections, if set, must be a number. If not numeric, or out of bounds, the default is 10.
      if ! [[ $SELECTIONS =~ ^[0-9]+$ ]] ; then
        SELECTIONS=10
