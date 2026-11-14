@@ -251,6 +251,9 @@ FSCOUNT=$(($(wc -l < "$CONFDIR/txt/dbops/filesystem_flacs.txt" 2>/dev/null || ec
 DEADCOUNT=$(($(wc -l < "$CONFDIR/txt/dbops/dead_flacs.txt" 2>/dev/null || echo 0)))
 if [[ $FSCOUNT -eq 0 || $DEADCOUNT -gt 50 ]]; then
   echo "$(date '+%Y-%m-%d %H:%M:%S') $DEADCOUNT recordings appear to be missing from disk ($FSCOUNT folders found): too many to be safe, so nothing has been deleted. If they really have gone, run a full refresh." >> "$CONFDIR/txt/dbops/dbrefresh.log"
+  if [[ $PROMPTS == "on" ]]; then                                     # Interactive refreshes say so on screen as well
+    dialog --stdout --backtitle "Giocoso Database Refresh" --title " Nothing Removed From the Database " --msgbox "\n$DEADCOUNT recordings in the database could not be found on disk. That is too many to be safe (is your music folder or share available?), so none of them has been removed.\n\nIf they really have gone, run a full refresh instead." 14 80
+  fi
   return
 fi
 if [[ -f $CONFDIR/txt/dbops/dead_flacs.txt ]]; then
