@@ -62,7 +62,7 @@ if [[ $DIALOGSTATUS -eq 0 ]]; then
   while IFS= read -r composer; do
     composer="${composer//\'/\'\'}"
     "${PROCONN[@]}" -e "update global_excludes set selection='yes' where composer='$composer'"
-  done < <(sed 's/^"//;s/"$//' "$CONFDIR/tmp/excludesselected.txt")
+  done < <($SEDPROG 's/^"//;s/"$//' "$CONFDIR/tmp/excludesselected.txt")
 
 elif [[ $DIALOGSTATUS -eq 3 ]]; then
 	"${PROCONN[@]}" -e "update global_excludes set selection='no'" 2>/dev/null

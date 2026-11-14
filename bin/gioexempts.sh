@@ -58,6 +58,6 @@ if [[ $DIALOGSTATUS -eq 0 ]]; then
   while IFS= read -r composer; do
     composer="${composer//\'/\'\'}"
     "${PROCONN[@]}" -e "update global_exempts set selection='yes' where composer='$composer'"
-  done < <(sed 's/^"//;s/"$//' "$CONFDIR/tmp/exemptselected.txt")
+  done < <($SEDPROG 's/^"//;s/"$//' "$CONFDIR/tmp/exemptselected.txt")
 
 fi
