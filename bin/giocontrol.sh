@@ -33,7 +33,7 @@ if [[ ! -f $CONFDIR/txt/skip.txt ]]; then
     rm -f "$CONFDIR/txt/autostop.txt" 2>/dev/null
     rm -f "$CONFDIR/txt/repeat.txt" 2>/dev/null
     pkill -f "display -geometry" >/dev/null 2>&1
-    FFPID=$(ps ax | grep 'ffmpeg' | grep -v grep | awk -F ' ' '{print $1}'); kill -n 9 $FFPID; wait $FFPID 2>/dev/null
+    FFPID=$(pgrep -f "$FFNAME -stats_period 1"); kill -9 $FFPID 2>/dev/null; wait $FFPID 2>/dev/null      # Only Giocoso's own playback, as everywhere else
     get_rechash && "${PROCONN[@]}" -e "delete from global_pauses where rechashvalue='$RECHASHVALUE'" >/dev/null 2>&1
   fi
 fi
