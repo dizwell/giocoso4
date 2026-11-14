@@ -135,6 +135,8 @@ if [[ $PROMPTS == "on" ]]; then
 
 	if [[ ! -z $f ]]; then
 	  for g in "$f"/*.flac; do
+	    # Some players and streamers need a seek table: give any FLAC without one a 100-point table (existing tables are left alone)
+	    if ! $METAFLAC --list --block-type=SEEKTABLE "$g" 2>/dev/null | $GREPPROG -q SEEKTABLE; then $METAFLAC --add-seekpoint=100x "$g" >/dev/null 2>&1; fi
 	    ARTIST=$($METAFLAC $UTFCHARS --show-tag=Artist "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
 	    ALBUM=$($METAFLAC $UTFCHARS --show-tag=Album "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
 	    GENRE=$($METAFLAC $UTFCHARS --show-tag=Genre "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
@@ -170,6 +172,8 @@ else
 	echo "$(date '+%Y-%m-%d %H:%M:%S') Analysing $f" >> "$CONFDIR/txt/dbops/dbrefresh.log"
   	if [[ ! -z $f ]]; then
   	  for g in "$f"/*.flac; do 
+  	    # Some players and streamers need a seek table: give any FLAC without one a 100-point table (existing tables are left alone)
+  	    if ! $METAFLAC --list --block-type=SEEKTABLE "$g" 2>/dev/null | $GREPPROG -q SEEKTABLE; then $METAFLAC --add-seekpoint=100x "$g" >/dev/null 2>&1; fi
   	    ARTIST=$($METAFLAC $UTFCHARS --show-tag=Artist "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
   	    ALBUM=$($METAFLAC $UTFCHARS --show-tag=Album "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
   	    GENRE=$($METAFLAC $UTFCHARS --show-tag=Genre "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
