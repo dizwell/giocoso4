@@ -50,7 +50,7 @@ if [[ ! -z $RESUMPTION ]]; then
   if [[ $GRESUMEFROM -lt 0 ]]; then GRESUMEFROM=0; fi
   PLAY_OFFSET=$GRESUMEFROM                    # Where in the recording this play starts: needed by handle_pause to store a true position
   glob_compute_duration
-  compute_replaygain
+  compute_replaygain "$GPLAYDIR"                # The one shared function, reading the resumed recording's own folder
   glob_play_music
   clearscreen
 else
@@ -66,71 +66,6 @@ TOTALDUR=$(round "$TOTALDUR/1" 0)                               # Converts the r
 ALREADYPLAYED=$(round "$GRESUMEFROM/1" 0)                       # Converts the resumption point to an integer number of seconds
 PLAYSECS=$(($TOTALDUR - $ALREADYPLAYED))                        # Converts the total duration of the recording into just the amount left to complete it
 PLAYLENGTH=$($DATEPROG -d@$TOTALDUR -u +%H:%M:%S)               # Duration of current recording, in hh:mm:ss format
-}
-
-function compute_replaygain {
-# This code reads the REPLAYGAIN_ALBUM_GAIN and REPLAYGAIN_ALBUM_PEAK tags
-# from the first FLAC in a folder.
-#
-# The REPLAYGAIN_ALBUM_GAIN tag specifies the gain adjustment for the album.
-# If that adjustment exceeds +7.5dB, we cap it at +7.5dB, storing the result
-# in CAPPED_GAIN.
-#
-# However, applying the album gain can cause clipping if the album's **peak**
-# is already close to 0dBFS. We therefore calculate the maximum gain permitted
-# by REPLAYGAIN_ALBUM_PEAK and use the lower of that limit and CAPPED_GAIN.
-# This ensures that the adjusted peak does not exceed 0dBFS. 
-#
-# If the peak tag is missing or invalid, we apply 0dB as a safe fallback.
-#
-# In short, this code:
-# * Caps the gain at +7.5 dB.
-# * Reduces it further if the peak requires it to avoid exceeding 0 dBFS.
-# * Applies 0 dB and displays ~ if the peak tag is missing or invalid.
-# * Displays the applied gain to two decimal places.
-
-f=$(find "$GPLAYDIR" -maxdepth 1 -name "*.flac" | sort | head -n 1)
-RPG_ALBUMGAIN=$($METAFLAC $UTFCHARS --show-tag=REPLAYGAIN_ALBUM_GAIN "$f" | $SEDPROG s/.*=//g)
-RPG_ALBUMPEAK=$($METAFLAC $UTFCHARS --show-tag=REPLAYGAIN_ALBUM_PEAK "$f" | $SEDPROG s/.*=//g)
-
-if [[ -n $RPG_ALBUMGAIN && ${USERPG^^} == "YES" ]]; then
-  NUMERIC_GAIN="${RPG_ALBUMGAIN%dB}"
-
-  # Cap the requested gain at +7.5dB.
-  CAPPED_GAIN=$(awk -v gain="$NUMERIC_GAIN" 'BEGIN { if (gain > 7.5) print 7.5; else print gain }')
-
-  # Check whether the peak tag is present, numeric, and greater than zero.
-  if [[ $RPG_ALBUMPEAK =~ ^[0-9]*\.?[0-9]+$ ]] &&
-     awk -v peak="$RPG_ALBUMPEAK" 'BEGIN { exit !(peak > 0) }'; then
-
-    # Calculate the maximum gain permitted by the album peak.
-    PEAK_LIMIT=$(awk -v peak="$RPG_ALBUMPEAK" 'BEGIN { print -20*log(peak)/log(10) }')
-
-    # Use whichever is lower: the capped gain or the peak limit.
-    SAFE_GAIN=$(awk -v gain="$CAPPED_GAIN" -v limit="$PEAK_LIMIT" 'BEGIN { if (gain > limit) print limit; else print gain }' | $SEDPROG 's/[[:space:]]*$//')
-    
-	# Display a tilde if the gain was reduced.
-    CORRECTION_FLAG=$(awk -v original="$NUMERIC_GAIN" -v safe="$SAFE_GAIN" 'BEGIN { if (safe < original) print "~"; else print "" }')
-  else
-    # Missing or invalid peak: do not apply ReplayGain.
-    SAFE_GAIN="0"
-    CORRECTION_FLAG="~"
-  fi
-
-  RPG_ALBUMGAIN="${SAFE_GAIN}dB"
-  AF_FILTER="adelay=2000:all=1,volume=$RPG_ALBUMGAIN"
-
-  DISPLAYRPG=$(LC_NUMERIC=C printf "%.2f\n" "$SAFE_GAIN")
-
-  # Volume reductions already have a minus sign; increases need a plus sign.
-  if [[ ${DISPLAYRPG:0:1} == "-" ]]; then RPGSIGN=""; else RPGSIGN="+"; fi
-  DISPLAYRPG="$RPGSIGN$DISPLAYRPG dB$CORRECTION_FLAG"
-  RPGAIN="$DISPLAYRPG"
-else
-  AF_FILTER="adelay=2000:all=1"
-  DISPLAYRPG="None"
-  RPGAIN="$DISPLAYRPG"
-fi
 }
 
 function glob_play_music {

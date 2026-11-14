@@ -136,7 +136,8 @@ function compute_replaygain {
 # * Applies 0 dB and displays ~ if the peak tag is missing or invalid.
 # * Displays the applied gain to two decimal places.
 
-f=$(find "$PLAYDIR" -maxdepth 1 -name "*.flac" | sort | head -n 1)
+# $1, if given, is the folder to read (Resume passes the resumed recording's folder); otherwise the folder being played
+f=$(find "${1:-$PLAYDIR}" -maxdepth 1 -name "*.flac" | sort | head -n 1)
 RPG_ALBUMGAIN=$($METAFLAC $UTFCHARS --show-tag=REPLAYGAIN_ALBUM_GAIN "$f" | $SEDPROG s/.*=//g)
 RPG_ALBUMPEAK=$($METAFLAC $UTFCHARS --show-tag=REPLAYGAIN_ALBUM_PEAK "$f" | $SEDPROG s/.*=//g)
 
