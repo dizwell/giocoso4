@@ -244,7 +244,15 @@ tput cvvis
 }
 
 function delete_obsolete {
-# If there is a file of FLACs to be deleted, then do that now, too
+# If there is a file of FLACs to be deleted, then do that now, too. But if the scan found no FLACs at all, or more than
+# 50 recordings appear to have gone, something is probably wrong (a music share not mounted, say): delete nothing, and
+# note it in the log. If that many recordings really have been removed, a full refresh will clear them out.
+FSCOUNT=$(($(wc -l < "$CONFDIR/txt/dbops/filesystem_flacs.txt" 2>/dev/null || echo 0)))
+DEADCOUNT=$(($(wc -l < "$CONFDIR/txt/dbops/dead_flacs.txt" 2>/dev/null || echo 0)))
+if [[ $FSCOUNT -eq 0 || $DEADCOUNT -gt 50 ]]; then
+  echo "$(date '+%Y-%m-%d %H:%M:%S') $DEADCOUNT recordings appear to be missing from disk ($FSCOUNT folders found): too many to be safe, so nothing has been deleted. If they really have gone, run a full refresh." >> "$CONFDIR/txt/dbops/dbrefresh.log"
+  return
+fi
 if [[ -f $CONFDIR/txt/dbops/dead_flacs.txt ]]; then
   while IFS= read -r FULLPATH; do
     FILESUFFIX="${FULLPATH#$FILEPREFIX}"
@@ -320,8 +328,8 @@ if [[ $GOODMUSIC -eq 1 ]]; then
 	get_db_flacs
     compute_diffs
 	scan_flacs
+    delete_obsolete                                                   # Before refresh_database, which removes the working files it reads
     refresh_database
-    delete_obsolete
   elif [[ $REFRESH_TYPE == "full" ]]; then
   	printf '=%.0s' {1..80} > "$CONFDIR/txt/dbops/dbrefresh.log"  # Start a new log
   	printf '\n' >> "$CONFDIR/txt/dbops/dbrefresh.log"
