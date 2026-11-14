@@ -207,6 +207,20 @@ fi
 
 function refresh_database {
 if [[ $REFRESH_TYPE == "full" ]]; then
+  # A full refresh empties global_recordings and rebuilds it from the scan. If the scan found no FLACs at all, or fewer
+  # than half as many recordings as the database already holds, the music is probably not available (an unmounted share,
+  # say): change nothing, and say so.
+  FSCOUNT=$(($(wc -l < "$CONFDIR/txt/dbops/filesystem_flacs.txt" 2>/dev/null || echo 0)))
+  DBCOUNT=$("${PROCONN[@]}" -N -B -e "select count(*) from global_recordings" 2>/dev/null); DBCOUNT=$((10#${DBCOUNT:-0}))
+  if [[ $FSCOUNT -eq 0 || $((FSCOUNT * 2)) -lt $DBCOUNT ]]; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') Full refresh found $FSCOUNT recording folders, but the database holds $DBCOUNT: too few to be safe, so the database has not been changed. Check that your music folder is available." >> "$CONFDIR/txt/dbops/dbrefresh.log"
+    if [[ $MUSIC_FOLDER == "NODIR" ]]; then                             # Started from the menu: say so on screen as well
+      dialog --stdout --backtitle "Giocoso Database Refresh" --title " Database Not Changed " --msgbox "\nThe full refresh found only $FSCOUNT recording folders, but the database currently holds $DBCOUNT. That suggests your music folder or share is not fully available, so the database has been left exactly as it was.\n\nCheck the music folder, then run the full refresh again." 14 80
+    fi
+    rm -f "$CONFDIR/txt/dbops/"{filesystem,db,new,dead,analysed}_flacs.txt >/dev/null 2>&1
+    tput cvvis
+    return
+  fi
   "${PROCONN[@]}" -N -B -e "delete from global_recordings" 2>/dev/null
 fi
 
