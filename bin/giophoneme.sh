@@ -145,9 +145,9 @@ if [[ $CHOICE == "new" ]]; then
 
     DIALOGSTATUS=$?
 
-    PHRASE=$(printf '%s\n' "$NEWITEM" | sed -n '1p')
-    VOICE=$(printf '%s\n' "$NEWITEM" | sed -n '2p')
-    PHONEME=$(printf '%s\n' "$NEWITEM" | sed -n '3p')
+    PHRASE=$(printf '%s\n' "$NEWITEM" | $SEDPROG -n '1p')
+    VOICE=$(printf '%s\n' "$NEWITEM" | $SEDPROG -n '2p')
+    PHONEME=$(printf '%s\n' "$NEWITEM" | $SEDPROG -n '3p')
 
     if [[ $DIALOGSTATUS -eq 3 ]]; then
 
