@@ -135,8 +135,13 @@ if [[ $PROMPTS == "on" ]]; then
 
 	if [[ ! -z $f ]]; then
 	  for g in "$f"/*.flac; do
-	    # Some players and streamers need a seek table: give any FLAC without one a 100-point table (existing tables are left alone)
-	    if ! $METAFLAC --list --block-type=SEEKTABLE "$g" 2>/dev/null | $GREPPROG -q SEEKTABLE; then $METAFLAC --add-seekpoint=100x "$g" >/dev/null 2>&1; fi
+	    # Some players and streamers need a seek table: give any FLAC without one a 100-point table. Existing tables are left
+	    # alone, except an empty one (0 points, which some converters write): that counts as none, and is removed and replaced.
+	    SEEKPOINTS=$($METAFLAC --list --block-type=SEEKTABLE "$g" 2>/dev/null | awk '/seek points:/ {print $3; exit}')
+	    if [[ -z $SEEKPOINTS || $SEEKPOINTS -eq 0 ]]; then
+	      [[ -n $SEEKPOINTS ]] && $METAFLAC --remove --block-type=SEEKTABLE "$g" >/dev/null 2>&1
+	      $METAFLAC --add-seekpoint=100x "$g" >/dev/null 2>&1
+	    fi
 	    ARTIST=$($METAFLAC $UTFCHARS --show-tag=Artist "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
 	    ALBUM=$($METAFLAC $UTFCHARS --show-tag=Album "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
 	    GENRE=$($METAFLAC $UTFCHARS --show-tag=Genre "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
@@ -172,8 +177,13 @@ else
 	echo "$(date '+%Y-%m-%d %H:%M:%S') Analysing $f" >> "$CONFDIR/txt/dbops/dbrefresh.log"
   	if [[ ! -z $f ]]; then
   	  for g in "$f"/*.flac; do 
-  	    # Some players and streamers need a seek table: give any FLAC without one a 100-point table (existing tables are left alone)
-  	    if ! $METAFLAC --list --block-type=SEEKTABLE "$g" 2>/dev/null | $GREPPROG -q SEEKTABLE; then $METAFLAC --add-seekpoint=100x "$g" >/dev/null 2>&1; fi
+  	    # Some players and streamers need a seek table: give any FLAC without one a 100-point table. Existing tables are left
+  	    # alone, except an empty one (0 points, which some converters write): that counts as none, and is removed and replaced.
+  	    SEEKPOINTS=$($METAFLAC --list --block-type=SEEKTABLE "$g" 2>/dev/null | awk '/seek points:/ {print $3; exit}')
+  	    if [[ -z $SEEKPOINTS || $SEEKPOINTS -eq 0 ]]; then
+  	      [[ -n $SEEKPOINTS ]] && $METAFLAC --remove --block-type=SEEKTABLE "$g" >/dev/null 2>&1
+  	      $METAFLAC --add-seekpoint=100x "$g" >/dev/null 2>&1
+  	    fi
   	    ARTIST=$($METAFLAC $UTFCHARS --show-tag=Artist "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
   	    ALBUM=$($METAFLAC $UTFCHARS --show-tag=Album "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
   	    GENRE=$($METAFLAC $UTFCHARS --show-tag=Genre "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
