@@ -39,6 +39,29 @@ case "$GIORELEASE" in
   *) echo "Unknown release '$GIORELEASE': use -v beta or -v stable."; exit 1 ;;
 esac
 
+# The installer needs sudo to install packages and make the program's commands. Check that it works before
+# anything else happens; if it doesn't, say why and wait for a key, so the reason stays on screen.
+function check_sudo {
+local problem=""
+clear; print_header
+if ! command -v sudo >/dev/null 2>&1; then
+  problem="Giocoso can't be installed, because the 'sudo' program isn't installed on this computer. Giocoso needs it to install the software it depends on. Please install sudo and add your user to the sudoers file, then run this installer again."
+else
+  tput cup 6 0; tput setaf $ALERT
+  if ! sudo -p $'\r    Please supply the sudo password for %u: ' -v; then
+    problem="Giocoso can't be installed until your user can use sudo: you don't appear to be in the sudoers file, or the password wasn't accepted. Please fix that, then run this installer again."
+  fi
+  tput setaf $MAINTEXT
+fi
+if [[ -n $problem ]]; then
+  tput clear; print_header
+  tput cup 6 4; tput setaf $ALERT; echo -e "$problem" | fold -s -w 76 | sed '2,$s/^/    /'
+  tput cup 11 4; tput setaf $ALERT; read -n 1 -p "Quitting in the meantime. Press a key to exit."
+  tput reset; tput sgr0
+  exit_program
+fi
+}
+
 function choose_release {
 if [[ -z $GIORELEASE ]]; then
   clear; print_header
@@ -518,6 +541,7 @@ tput cup 8 4; tput setaf $INFOTEXT; echo -e "• It will install numerous new so
 echo ""; tput setaf $ALERT; read -s -n 1 -p "    Do you wish to proceed? (y/n): " response   # One line below the text, however long it is
 
 if [[ "$response" == [Yy]* ]]; then
+  check_sudo                     # Before anything else: without working sudo, nothing can be installed
   choose_release
   clear; print_header; tput setaf $MAINTEXT; tput cup 6 0
   tput cup 6 4; echo -e "Checking your network connection is working..."
