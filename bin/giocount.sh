@@ -210,7 +210,8 @@ while [[ -f $CONFDIR/txt/nowplaying.txt ]]; do
     echo "" > "$CONFDIR"/txt/newplay.txt >/dev/null 2>&1
 	$MAGICK -size "$ARTSIZE" canvas:transparent PNG32:"$CONFDIR/art/albumart.jpg" 2>/dev/null
     pkill -f "display -geometry" >/dev/null 2>&1
-    rm -f "$CONFDIR/txt/skip.txt" >/dev/null 2>&1
+    # skip.txt is deliberately left in place: end_playback must still see it, so as not to record a skipped
+    # recording as a play. The play loops delete it once the play is over.
     break
   fi
 

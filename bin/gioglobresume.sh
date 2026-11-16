@@ -227,6 +227,7 @@ if [[ $($METAFLAC --show-md5sum "$f" 2>&1 | $GREPPROG -i error | wc -l) -eq 0 ]]
       record_resumed_play
     fi
   fi
+  rm -f "$CONFDIR/txt/skip.txt" 2>/dev/null                                      # A skipped resume is over: don't let it skip the next play
 
 else
   INVALIDFLAC=1
