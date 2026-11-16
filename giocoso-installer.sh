@@ -675,7 +675,7 @@ config.window_decorations = "TITLE | RESIZE"
 config.freetype_load_target = "Light"
 config.enable_wayland = false
 config.enable_tab_bar = false
-config.line_height = 1.1
+config.line_height = 1.2
 --config.front_end = "WebGpu"
 local schemes = wezterm.get_builtin_color_schemes()
 if not schemes[config.color_scheme] then
