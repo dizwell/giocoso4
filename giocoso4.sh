@@ -599,7 +599,10 @@ PLAYGENRE=$($METAFLAC $UTFCHARS --show-tag=Genre "$f" | $SEDPROG s/.*=//g)
 PLAYPERFORMER=$($METAFLAC $UTFCHARS --show-tag=Performer "$f" | $SEDPROG s/.*=//g)
 
 PLAYDATE=$(date)
-OS=$(cat /etc/os-release | $GREPPROG -w NAME= | gawk -F "=" '{print $2}' | $SEDPROG "s/\"//g")
+OS=""
+if [[ -f /etc/os-release ]]; then                        # Linux only: MacOS has no such file (and is handled by sw_vers below)
+  OS=$($GREPPROG -w NAME= /etc/os-release | gawk -F "=" '{print $2}' | $SEDPROG "s/\"//g")
+fi
 if [ -z "$OS" ]; then
   PRODUCT_NAME=$(sw_vers -productName)
   PRODUCT_VERSION=$(sw_vers -productVersion)
