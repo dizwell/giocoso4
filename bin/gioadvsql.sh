@@ -28,13 +28,9 @@ if [[ $exitStatus -eq 0 ]]; then
   $SEDPROG -i ':a;N;$!ba;s/\n/ /g' "$FILENAME" 2>/dev/null     # Turns a multi-line query into a single line of text, which is needed to parse correctly.
   readarray -t sqlfilter < "$CONFDIR/tmp/sqlfilter.txt" 2>/dev/null
   SQLTXT="${sqlfilter[0]}"
-  shopt -s nocasematch # makes the string search case-insensitive
-  SQLTXT="${SQLTXT//delete/}"
-  SQLTXT="${SQLTXT//update/}"
-  SQLTXT="${SQLTXT//drop/}"
-  SQLTXT="${SQLTXT//create/}"
+  # Only semicolons are removed, so no second statement can be added. Words such as "drop" or "update" are left
+  # alone: they can't do anything inside a select's where clause, and stripping them mangled names ("Raindrop").
   SQLTXT="${SQLTXT//;/}"
-  shopt -u nocasematch
   echo "$SQLTXT" > "$CONFDIR/txt/advsqltext.txt"
 fi
 }
@@ -45,7 +41,7 @@ while IFS= read -r QUERYNAME; do
   QUERYLIST+=("$QUERYNAME" "$QUERYNAME" off)
 done < <("${PROCONN[@]}" -N -B -e "select query_name from stored_queries order by query_name")
 
-CHOSENQUERY=$(dialog --no-tags --backtitle "Advanced SQL Selection of Music" --title " Select a Stored Query " --radiolist "\nPlease select the query to use:\n" 15 90 0 "${QUERYLIST[@]}" 3>&1 1>&2 2>&3 3>&-)	
+CHOSENQUERY=$(dialog --no-tags --backtitle "Advanced SQL Selection of Music" --title " Select a Stored Query " --radiolist "\nSelect a query to use or press Cancel to start a new one:\n" 15 90 0 "${QUERYLIST[@]}" 3>&1 1>&2 2>&3 3>&-)	
 
 exitStatus=$?
 if [[ $exitStatus -eq 0 ]]; then
