@@ -18,6 +18,7 @@ if [[ $MAXLOOPS -eq 0 ]]; then
   dialog --stdout --backtitle "Giocoso Music Search Failure" --title " No Matching Results " --msgbox "\nNo music can be found to match your default selection criteria.\n\nCheck the '$CONFDIR/tmp/folders-to-be-played.txt' file to see if that helps you work out why this might be, or consider editing your configuration parameters to relax various selection criteria and then try again." 12 80
 fi
 
+INVALIDFLAC=0                                              # A fresh run: no invalid FLAC found yet
 while [[ $PLAYS -le $MAXLOOPS ]]; do 
   TOTALDUR=0; duration=0
   PLAYDIR=$($SEDPROG "${PLAYS}q;d" "$CONFDIR/txt/searchfilter.txt" 2>/dev/null); DIRBASE="$PLAYDIR"
@@ -51,6 +52,7 @@ while [[ $PLAYS -le $MAXLOOPS ]]; do
     echo -en "\033]0; Now playing: $TERMTITLE \007\c"
   fi
   play_music
+  if [[ $INVALIDFLAC -eq 1 ]]; then break; fi                # An invalid FLAC was found: stop the whole run, as the message says
   ((PLAYS++))
 
   if [[ -f  $CONFDIR/txt/repeat.txt ]]; then
@@ -72,6 +74,7 @@ if [[ $LINESELECTIONS -eq 0 ]]; then
   PLAYS=$((LINESELECTIONS+1))                                             # Force this while loop to terminate (and thus return to the main menu)
 fi
 
+INVALIDFLAC=0                                              # A fresh run: no invalid FLAC found yet
 while [[ $PLAYS -le $LINESELECTIONS ]]; do
   TOTALDUR=0; duration=0
   PLAYDIR=$($SEDPROG "${LINENUM}q;d" "$CONFDIR/txt/searchfilter.txt" 2>/dev/null); DIRBASE="$PLAYDIR"
@@ -97,6 +100,7 @@ while [[ $PLAYS -le $LINESELECTIONS ]]; do
     echo -en "\033]0; Now playing: $TERMTITLE \007\c"
   fi
   play_music
+  if [[ $INVALIDFLAC -eq 1 ]]; then break; fi                # An invalid FLAC was found: stop the whole run, as the message says
   ((PLAYS++))
   if [[ -f  $CONFDIR/txt/repeat.txt ]]; then rm -f "$CONFDIR/txt/repeat.txt"; PLAYS=$((PLAYS-1)); else LINENUM=$((LINENUM+1)); fi
   rm -f "$CONFDIR/txt/skip.txt" >/dev/null 2>&1
@@ -119,6 +123,7 @@ if [[ $LINESELECTIONS -eq 0 ]]; then
   PLAYS=$((LINESELECTIONS+1))                                             # Force this while loop to terminate (and thus return to the main menu)
 fi
 
+INVALIDFLAC=0                                              # A fresh run: no invalid FLAC found yet
 while [[ $PLAYS -le $LINESELECTIONS ]]; do
   TOTALDUR=0; duration=0
   PLAYDIR=$($SEDPROG "${LINENUM}q;d" "$CONFDIR/txt/searchfilter.txt" 2>/dev/null); DIRBASE="$PLAYDIR"
@@ -144,6 +149,7 @@ while [[ $PLAYS -le $LINESELECTIONS ]]; do
     echo -en "\033]0; Now playing: $TERMTITLE \007\c"
   fi
   play_music
+  if [[ $INVALIDFLAC -eq 1 ]]; then break; fi                # An invalid FLAC was found: stop the whole run, as the message says
   ((PLAYS++))
   if [[ -f  $CONFDIR/txt/repeat.txt ]]; then rm -f "$CONFDIR/txt/repeat.txt"; PLAYS=$((PLAYS-1)); else LINENUM=$((LINENUM+1)); fi
   rm -f "$CONFDIR/txt/skip.txt" >/dev/null 2>&1
@@ -156,6 +162,7 @@ INVALIDFLAC=0                                              # Re-setting bad FLAC
 
 function play_direct {
 PLAYS=1; LINESELECTIONS=1; DIRECT_PLAY=0; unset SEARCHSQL; tput civis
+INVALIDFLAC=0                                              # A fresh run: no invalid FLAC found yet
 while [[ $PLAYS -le $LINESELECTIONS ]]; do
   TOTALDUR=0; duration=0
   if [[ -f  $CONFDIR/txt/repeat.txt ]]; then rm -f "$CONFDIR/txt/repeat.txt"; fi
@@ -172,6 +179,7 @@ while [[ $PLAYS -le $LINESELECTIONS ]]; do
     echo -en "\033]0; Now playing: $TERMTITLE \007\c"
   fi
   play_music
+  if [[ $INVALIDFLAC -eq 1 ]]; then break; fi                # An invalid FLAC was found: stop the whole run, as the message says
 
   rm -f "$CONFDIR/txt/skip.txt" >/dev/null 2>&1
 
@@ -231,6 +239,7 @@ if [[ $LINESELECTIONS -eq 0 ]]; then
   PLAYS=$((LINESELECTIONS+1))                                             # Force this while loop to terminate (and thus return to the main menu)
 fi
 
+INVALIDFLAC=0                                              # A fresh run: no invalid FLAC found yet
 while [[ $PLAYS -le $LINESELECTIONS ]]; do
   PLAYDIR=$($SEDPROG "${LINENUM}q;d" "$CONFDIR/txt/searchfilter.txt" 2>/dev/null); DIRBASE="$PLAYDIR"
   TOTALDUR=0; duration=0
@@ -256,6 +265,7 @@ while [[ $PLAYS -le $LINESELECTIONS ]]; do
     echo -en "\033]0; Now playing: $TERMTITLE \007\c"
   fi
   play_music
+  if [[ $INVALIDFLAC -eq 1 ]]; then break; fi                # An invalid FLAC was found: stop the whole run, as the message says
   if [[ -f $CONFDIR/txt/repeat.txt ]]; then                                  # Repeat: play the same recording again, as filter and SQL plays do
     rm -f "$CONFDIR/txt/repeat.txt"
   else

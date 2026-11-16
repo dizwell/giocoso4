@@ -19,6 +19,7 @@ if [[ $MAXLOOPS -eq 0 ]]; then
   tput cup 13 4; tput setaf "$ALERT"; echo -en "Nothing selected to play!"
   tput cup 14 4; tput setaf "$ALERT"; read -p "Press a key to continue."
 fi
+INVALIDFLAC=0                                              # A fresh run: no invalid FLAC found yet
 while [[ $PLAYS -le $MAXLOOPS ]]; do 
   TOTALDUR=0; duration=0
   PLAYDIR=$($SEDPROG "${PLAYS}q;d" "$CONFDIR/txt/searchfilter.txt" 2>/dev/null); DIRBASE="$PLAYDIR"
@@ -48,6 +49,7 @@ while [[ $PLAYS -le $MAXLOOPS ]]; do
     echo -en "\033]0; $TERMTITLE \007\c"
   fi
   play_music
+  if [[ $INVALIDFLAC -eq 1 ]]; then break; fi                # An invalid FLAC was found: stop the whole run, as the message says
   ((PLAYS++))
 
   if [[ -f  $CONFDIR/txt/repeat.txt ]]; then

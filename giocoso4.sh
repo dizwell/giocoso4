@@ -82,8 +82,8 @@ local f track_duration_float track_duration_int      # Scratch values only: don'
 PLAYLENGTH=0 PLAYSECS=0
 
 f=$(printf '%s\n' "$PLAYDIR"/*.flac | head -1)
-DURCOMPOSER=$($METAFLAC $UTFCHARS --show-tag=Artist "$f" | $SEDPROG s/.*=//g)
-DURCOMPOSITION=$($METAFLAC $UTFCHARS --show-tag=Album "$f" | $SEDPROG s/.*=//g)    
+DURCOMPOSER=$($METAFLAC $UTFCHARS --show-tag=Artist "$f" 2>/dev/null | $SEDPROG s/.*=//g)
+DURCOMPOSITION=$($METAFLAC $UTFCHARS --show-tag=Album "$f" 2>/dev/null | $SEDPROG s/.*=//g)    
 DURRECHASH=$(echo -n "$DURCOMPOSER$DURCOMPOSITION" | $MD5PROG | gawk '{print $1}')
 
 # See if there is an entry in the database for the recording being played.
@@ -138,8 +138,8 @@ function compute_replaygain {
 
 # $1, if given, is the folder to read (Resume passes the resumed recording's folder); otherwise the folder being played
 f=$(find "${1:-$PLAYDIR}" -maxdepth 1 -name "*.flac" | sort | head -n 1)
-RPG_ALBUMGAIN=$($METAFLAC $UTFCHARS --show-tag=REPLAYGAIN_ALBUM_GAIN "$f" | $SEDPROG s/.*=//g)
-RPG_ALBUMPEAK=$($METAFLAC $UTFCHARS --show-tag=REPLAYGAIN_ALBUM_PEAK "$f" | $SEDPROG s/.*=//g)
+RPG_ALBUMGAIN=$($METAFLAC $UTFCHARS --show-tag=REPLAYGAIN_ALBUM_GAIN "$f" 2>/dev/null | $SEDPROG s/.*=//g)
+RPG_ALBUMPEAK=$($METAFLAC $UTFCHARS --show-tag=REPLAYGAIN_ALBUM_PEAK "$f" 2>/dev/null | $SEDPROG s/.*=//g)
 
 if [[ -n $RPG_ALBUMGAIN && ${USERPG^^} == "YES" ]]; then
   NUMERIC_GAIN="${RPG_ALBUMGAIN%dB}"
@@ -184,8 +184,8 @@ fi
 function last_play {
 # Determine whether the selected recording has been played before and, if so, how many times.
 f=$(find "$PLAYDIR" -maxdepth 1 -name "*.flac" | sort | head -n 1)
-PLAYARTIST=$($METAFLAC $UTFCHARS --show-tag=Artist "$f" | $SEDPROG s/.*=//g)
-PLAYALBUM=$($METAFLAC $UTFCHARS --show-tag=Album "$f" | $SEDPROG s/.*=//g)
+PLAYARTIST=$($METAFLAC $UTFCHARS --show-tag=Artist "$f" 2>/dev/null | $SEDPROG s/.*=//g)
+PLAYALBUM=$($METAFLAC $UTFCHARS --show-tag=Album "$f" 2>/dev/null | $SEDPROG s/.*=//g)
 RECHASHVALUE=$(echo -n "$PLAYARTIST$PLAYALBUM" | $MD5PROG | gawk '{print $1}')
 PLAYARTIST=$(echo "$PLAYARTIST" | $SEDPROG "s/'/\'\'/g" | $SEDPROG "s/;//g")   # Strips out semicolons and turns single quotes into double single quotes (otherwise SQL breaks on the insert)
 PLAYALBUM=$(echo "$PLAYALBUM" | $SEDPROG "s/'/\'\'/g" | $SEDPROG "s/;//g")   # Strips out semicolons and turns single quotes into double single quotes (otherwise SQL breaks on the insert)
@@ -257,13 +257,13 @@ else
   $METAFLAC $UTFCHARS --export-picture-to="$CONFDIR/art/albumart.jpg" "$f" >/dev/null 2>&1
 fi
 
-displaydate=$($METAFLAC $UTFCHARS --show-tag=Year "$f" | $SEDPROG s/.*=//g); if [[ -z $displaydate ]]; then displaydate=$($METAFLAC $UTFCHARS --show-tag=Date "$f" | $SEDPROG s/.*=//g); fi
-displaygenre=$($METAFLAC $UTFCHARS --show-tag=Genre "$f" | $SEDPROG s/.*=//g)
-displaycomment=$($METAFLAC $UTFCHARS --show-tag=Comment "$f" | $SEDPROG s/.*=//g); THISCOMMENT="$displaycomment"
+displaydate=$($METAFLAC $UTFCHARS --show-tag=Year "$f" 2>/dev/null | $SEDPROG s/.*=//g); if [[ -z $displaydate ]]; then displaydate=$($METAFLAC $UTFCHARS --show-tag=Date "$f" 2>/dev/null | $SEDPROG s/.*=//g); fi
+displaygenre=$($METAFLAC $UTFCHARS --show-tag=Genre "$f" 2>/dev/null | $SEDPROG s/.*=//g)
+displaycomment=$($METAFLAC $UTFCHARS --show-tag=Comment "$f" 2>/dev/null | $SEDPROG s/.*=//g); THISCOMMENT="$displaycomment"
 if [[ ${#displaycomment} -gt 330 ]]; then displaycomment="${displaycomment::330}…"; fi
-displaycomp=$($METAFLAC $UTFCHARS --show-tag=Artist "$f" | $SEDPROG s/.*=//g); THISARTIST="$displaycomp"
-displaywork=$($METAFLAC $UTFCHARS --show-tag=Album "$f" | $SEDPROG s/.*=//g); THISALBUM="$displaywork"
-THISDISTINGUISHED_ARTIST=$($METAFLAC $UTFCHARS --show-tag=Performer "$f" | $SEDPROG s/.*=//g)
+displaycomp=$($METAFLAC $UTFCHARS --show-tag=Artist "$f" 2>/dev/null | $SEDPROG s/.*=//g); THISARTIST="$displaycomp"
+displaywork=$($METAFLAC $UTFCHARS --show-tag=Album "$f" 2>/dev/null | $SEDPROG s/.*=//g); THISALBUM="$displaywork"
+THISDISTINGUISHED_ARTIST=$($METAFLAC $UTFCHARS --show-tag=Performer "$f" 2>/dev/null | $SEDPROG s/.*=//g)
 displaywork=${displaywork%%(*}
 FULLWORKNAME=$displaywork
 probeattributes=$($FFPROBE -hide_banner "$f" |& $GREPPROG Stream | $GREPPROG Audio)
@@ -570,7 +570,7 @@ if [[ -d $PLAYDIR ]]; then
     tput cup 9 4;   echo -e "A non-existent or invalid FLAC file has been detected."
     tput cup 10 4;  echo -e "Quitting attempts to play."
     tput cup 12 4;  read -n 1 -s -r -p "Press a key to return to the main menu."
-    PLAYS=$MAXLOOPS   # The terminating condition for the plays-until-number_of_plays_per_cycle loop
+    INVALIDFLAC=1     # Every play loop stops when it sees this, whatever kind of play it is
     return
   fi
 else
@@ -593,10 +593,10 @@ end_playback
 
 function record_play {
 f=$(find "$PLAYDIR" -maxdepth 1 -name "*.flac" | sort | head -n 1)
-PLAYARTIST=$($METAFLAC $UTFCHARS --show-tag=Artist "$f" | $SEDPROG s/.*=//g)
-PLAYALBUM=$($METAFLAC $UTFCHARS --show-tag=Album "$f" | $SEDPROG s/.*=//g)
-PLAYGENRE=$($METAFLAC $UTFCHARS --show-tag=Genre "$f" | $SEDPROG s/.*=//g)
-PLAYPERFORMER=$($METAFLAC $UTFCHARS --show-tag=Performer "$f" | $SEDPROG s/.*=//g)
+PLAYARTIST=$($METAFLAC $UTFCHARS --show-tag=Artist "$f" 2>/dev/null | $SEDPROG s/.*=//g)
+PLAYALBUM=$($METAFLAC $UTFCHARS --show-tag=Album "$f" 2>/dev/null | $SEDPROG s/.*=//g)
+PLAYGENRE=$($METAFLAC $UTFCHARS --show-tag=Genre "$f" 2>/dev/null | $SEDPROG s/.*=//g)
+PLAYPERFORMER=$($METAFLAC $UTFCHARS --show-tag=Performer "$f" 2>/dev/null | $SEDPROG s/.*=//g)
 
 PLAYDATE=$(date)
 OS=""

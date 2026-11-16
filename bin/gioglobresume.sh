@@ -86,15 +86,15 @@ if [[ $($METAFLAC --show-md5sum "$f" 2>&1 | $GREPPROG -i error | wc -l) -eq 0 ]]
     $METAFLAC $UTFCHARS --export-picture-to="$CONFDIR/art/albumart.jpg" "$f" >/dev/null 2>&1
   fi
 
-  displaydate=$($METAFLAC $UTFCHARS --show-tag=Year "$f" | $SEDPROG 's/.*=//g' 2>/dev/null); if [[ -z $displaydate ]]; then displaydate=$($METAFLAC $UTFCHARS --show-tag=Date "$f" | $SEDPROG 's/.*=//g' 2>/dev/null); fi
-  displaygenre=$($METAFLAC $UTFCHARS --show-tag=Genre "$f" | $SEDPROG 's/.*=//g' 2>/dev/null)
-  displaycomment=$($METAFLAC $UTFCHARS --show-tag=Comment "$f" | $SEDPROG 's/.*=//g' 2>/dev/null); THISCOMMENT="$displaycomment"
+  displaydate=$($METAFLAC $UTFCHARS --show-tag=Year "$f" 2>/dev/null | $SEDPROG 's/.*=//g' 2>/dev/null); if [[ -z $displaydate ]]; then displaydate=$($METAFLAC $UTFCHARS --show-tag=Date "$f" 2>/dev/null | $SEDPROG 's/.*=//g' 2>/dev/null); fi
+  displaygenre=$($METAFLAC $UTFCHARS --show-tag=Genre "$f" 2>/dev/null | $SEDPROG 's/.*=//g' 2>/dev/null)
+  displaycomment=$($METAFLAC $UTFCHARS --show-tag=Comment "$f" 2>/dev/null | $SEDPROG 's/.*=//g' 2>/dev/null); THISCOMMENT="$displaycomment"
   if [[ ${#displaycomment} -gt 330 ]]; then
     displaycomment="${displaycomment::330}…"
   fi
-  displaycomp=$($METAFLAC $UTFCHARS --show-tag=Artist "$f" | $SEDPROG 's/.*=//g' 2>/dev/null); THISARTIST="$displaycomp"
-  displaywork=$($METAFLAC $UTFCHARS --show-tag=Album "$f" | $SEDPROG 's/.*=//g' 2>/dev/null); THISALBUM="$displaywork"
-  THISDISTINGUISHED_ARTIST=$($METAFLAC $UTFCHARS --show-tag=Performer "$f" | $SEDPROG 's/.*=//g' 2>/dev/null)
+  displaycomp=$($METAFLAC $UTFCHARS --show-tag=Artist "$f" 2>/dev/null | $SEDPROG 's/.*=//g' 2>/dev/null); THISARTIST="$displaycomp"
+  displaywork=$($METAFLAC $UTFCHARS --show-tag=Album "$f" 2>/dev/null | $SEDPROG 's/.*=//g' 2>/dev/null); THISALBUM="$displaywork"
+  THISDISTINGUISHED_ARTIST=$($METAFLAC $UTFCHARS --show-tag=Performer "$f" 2>/dev/null | $SEDPROG 's/.*=//g' 2>/dev/null)
   displaywork=${displaywork%%(*}
   FULLWORKNAME=$displaywork
   probeattributes=$($FFPROBE -hide_banner "$f" |& $GREPPROG Stream | $GREPPROG Audio)
@@ -124,8 +124,8 @@ if [[ $($METAFLAC --show-md5sum "$f" 2>&1 | $GREPPROG -i error | wc -l) -eq 0 ]]
 
   # Determine whether the selected recording has been played before and, if so, how many times.
   f=$(find "$GPLAYDIR" -name "*.flac" | sort | head -n 1)
-  PLAYARTIST=$($METAFLAC $UTFCHARS --show-tag=Artist "$f" | $SEDPROG 's/.*=//g' 2>/dev/null)
-  PLAYALBUM=$($METAFLAC $UTFCHARS --show-tag=Album "$f" | $SEDPROG 's/.*=//g' 2>/dev/null)
+  PLAYARTIST=$($METAFLAC $UTFCHARS --show-tag=Artist "$f" 2>/dev/null | $SEDPROG 's/.*=//g' 2>/dev/null)
+  PLAYALBUM=$($METAFLAC $UTFCHARS --show-tag=Album "$f" 2>/dev/null | $SEDPROG 's/.*=//g' 2>/dev/null)
   RECHASHVALUE=$(echo -n "$PLAYARTIST$PLAYALBUM" | $MD5PROG | gawk '{print $1}')
   PLAYARTIST=$(echo "$PLAYARTIST" | $SEDPROG "s/'/\'\'/g" 2>/dev/null | $SEDPROG "s/;//g" 2>/dev/null)             				# Strips out semicolons and turns single quotes into double single quotes (otherwise SQL breaks on the insert)
   PLAYALBUM=$(echo "$PLAYALBUM" | $SEDPROG "s/'/\'\'/g" 2>/dev/null | $SEDPROG "s/;//g" 2>/dev/null)               				# Strips out semicolons and turns single quotes into double single quotes (otherwise SQL breaks on the insert)
@@ -243,10 +243,10 @@ fi
 
 function record_resumed_play {
 f=$(find "$GPLAYDIR" -maxdepth 1 -name "*.flac" | sort | head -n 1)
-PLAYARTIST=$($METAFLAC $UTFCHARS --show-tag=Artist "$f" | $SEDPROG 's/.*=//g' 2>/dev/null)
-PLAYALBUM=$($METAFLAC $UTFCHARS --show-tag=Album "$f" | $SEDPROG 's/.*=//g' 2>/dev/null)
-PLAYGENRE=$($METAFLAC $UTFCHARS --show-tag=Genre "$f" | $SEDPROG 's/.*=//g' 2>/dev/null)
-PLAYPERFORMER=$($METAFLAC $UTFCHARS --show-tag=Performer "$f" | $SEDPROG 's/.*=//g' 2>/dev/null)
+PLAYARTIST=$($METAFLAC $UTFCHARS --show-tag=Artist "$f" 2>/dev/null | $SEDPROG 's/.*=//g' 2>/dev/null)
+PLAYALBUM=$($METAFLAC $UTFCHARS --show-tag=Album "$f" 2>/dev/null | $SEDPROG 's/.*=//g' 2>/dev/null)
+PLAYGENRE=$($METAFLAC $UTFCHARS --show-tag=Genre "$f" 2>/dev/null | $SEDPROG 's/.*=//g' 2>/dev/null)
+PLAYPERFORMER=$($METAFLAC $UTFCHARS --show-tag=Performer "$f" 2>/dev/null | $SEDPROG 's/.*=//g' 2>/dev/null)
 
 PLAYDATE=$(date)
 OS=""
