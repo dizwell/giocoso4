@@ -15,6 +15,17 @@ elif [[ $1 == "global" ]]; then
 else
   PHONEME_TABLE="user_phonemes"
 fi
+
+function speak_item {
+# Says $2 in voice $1, exactly as an announcement would: the Mac's "say" with the stored voice, or on Linux
+# espeak-ng with that voice's language (voice_to_lang, the same mapping announcements use)
+if [[ $(uname -a) == *"Darwin"* ]]; then
+  say -v "$1" -r $VSPEED "$2"
+else
+  voice_to_lang "$1"
+  espeak-ng -m -v "$VOICELANG" -s "$VSPEED" "$2" 2>/dev/null
+fi
+}
 	
 CHOICE=$(dialog --no-tags --backtitle "Giocoso Announcement Management" \
   --title " Select Management Option " \
@@ -163,7 +174,7 @@ if [[ $CHOICE == "new" ]]; then
         SPEAKVOICE="Daniel"
       fi
 
-      say -v "$SPEAKVOICE" -r $VSPEED "$SPEAKTEXT"
+      speak_item "$SPEAKVOICE" "$SPEAKTEXT"
       continue
 
     elif [[ $DIALOGSTATUS -eq 0 ]]; then
@@ -402,7 +413,7 @@ while true; do
     "select ifnull(voice,'Daniel') from $PHONEME_TABLE where phrase='$SQLCOMPOSER'" 2>/dev/null)
 
   while true; do
-    say -v "$SOUNDVOICE" -r $VSPEED "$SPOKENTEXT" &
+    speak_item "$SOUNDVOICE" "$SPOKENTEXT" &
 
     dialog --backtitle "Giocoso Announcement Management - Press ESC to return to the main menu" \
       --title " Composer Pronunciation " \
@@ -446,7 +457,7 @@ while true; do
         ALTSTATUS=$?
 
         if [[ $ALTSTATUS -eq 3 ]]; then
-          say -v "$SOUNDVOICE" -r $VSPEED "$ALTERNATIVE"
+          speak_item "$SOUNDVOICE" "$ALTERNATIVE"
           continue
 
         elif [[ $ALTSTATUS -eq 0 ]]; then
