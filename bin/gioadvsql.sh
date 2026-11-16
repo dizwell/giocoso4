@@ -145,10 +145,14 @@ if [[ ! -z $SQLTXT ]]; then
   FIRSTWORD=${SQLTXT%% *}; FIRSTWORD=${FIRSTWORD^^}
   if [[ $FIRSTWORD != WHERE ]]; then SQLTXT="where $SQLTXT"; fi
   SQLSTMT="select concat('"$FILEPREFIX"',filesuffix) from global_recordings $SQLTXT order by rand()"
-  DIRBASE=$("${PROCONN[@]}" -N -B -e "$SQLSTMT" 2>/dev/null)
 else
-  DIRBASE=$("${PROCONN[@]}" -N -B -e "$QRYTEXT" 2>/dev/null)
+  SQLSTMT="$QRYTEXT"
 fi
+# Just before it runs, whether typed now or a Stored Query saved at any time: no semicolons and no backslashes.
+# The mariadb client acts on backslash commands itself (\g sends a statement, so "... \g drop table x" would
+# become a second, real statement), so removing them keeps this to the single select it is meant to be.
+RUNSTMT="${SQLSTMT//;/}"; RUNSTMT="${RUNSTMT//\\/}"
+DIRBASE=$("${PROCONN[@]}" -N -B -e "$RUNSTMT" 2>/dev/null)
 
 # The results of the query might contain many candidate folders. We should check all of them exist and contain FLACs before
 # creating a results set that can be played. If folders are non-existent or don't contain FLACs, don't add them to VALIDDIRS.
