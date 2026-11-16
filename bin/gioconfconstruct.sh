@@ -147,8 +147,8 @@ else
   CONFSELECTIONS="${numparams[0]}"  ; if [[ ! $CONFSELECTIONS =~ ^[0-9]+$ ]]; then CONFSELECTIONS=10; fi
   CONFTIMEBAR="${numparams[1]}"     ; if [[ ! $CONFTIMEBAR =~ ^[0-9]+$ ]]; then CONFTIMEBAR=24; fi
   CONFCOUNT="${numparams[2]}"       ; if [[ ! $CONFCOUNT =~ ^[0-9]+$ ]]; then CONFCOUNT=120; fi
-  CONFARTSIZE="${numparams[3]}"     ; if [[ ! $CONFARTSIZE =~ ^[0-9]+$ ]]; then CONFARTSIZE=340; fi
-  CONFLOGOSIZE="${numparams[4]}"    ; if [[ ! $CONFLOGOSIZE =~ ^[0-9]+$ ]]; then CONFLOGOSIZE=110; fi
+  CONFARTSIZE="${numparams[3]}"     ; if [[ ! $CONFARTSIZE =~ ^[0-9]+$ ]] || [[ $((10#$CONFARTSIZE)) -lt 300 ]]; then CONFARTSIZE=340; fi    # Minimum 300
+  CONFLOGOSIZE="${numparams[4]}"    ; if [[ ! $CONFLOGOSIZE =~ ^[0-9]+$ ]] || [[ $((10#$CONFLOGOSIZE)) -lt 100 ]]; then CONFLOGOSIZE=110; fi  # Minimum 100
   CONFLOGOPOS="${numparams[5]}"     ; if [[ ! $CONFLOGOPOS =~ ^-?[0-9]+$ ]]; then CONFLOGOPOS=0; fi
   # Save every number in plain base-10 form, so 08 or 09 (invalid octal to Bash) are written as 8 and 9
   for numname in CONFSELECTIONS CONFTIMEBAR CONFCOUNT CONFARTSIZE CONFLOGOSIZE; do

@@ -76,19 +76,11 @@ if [[ -f "$CONFDIR/txt/giocoso.conf" ]]; then
   fi
   TIMEBAR=$(( TIMEBAR * -1))  								# Time logic in SQL means the parameter value has to be turned into a negative number to work properly. "18" becomes "-18", etc
 
-  # Artsize is supplied as a single number (defaulting to 340 if blank or non-numeric), but must become a "AxA" textual parameter
-  if ! [[ -z $ARTSIZE ]]; then
-    ARTSIZE="${ARTSIZE}x${ARTSIZE}"	  
-  else
-	  ARTSIZE="340x340"
-  fi
-  
-  # Logosize is the same thing: defaults to 110x110, but a single number supplied must become a BxB textual parameter
-  if ! [[ -z $LOGOSIZE ]]; then
-    LOGOSIZE="${LOGOSIZE}x${LOGOSIZE}"	  
-  else
-	  LOGOSIZE="110x110"
-  fi  
+  # Art and logo sizes are stored as single numbers but used as "AxA". Only a whole number at or above the minimum
+  # (300 for album art, 100 for the logo) is accepted: anything else, including a left-over "340x340" from an
+  # earlier read when the line is missing from the file, becomes the default (340 and 110).
+  if [[ $ARTSIZE =~ ^[0-9]+$ ]] && [[ $ARTSIZE -ge 300 ]]; then ARTSIZE="${ARTSIZE}x${ARTSIZE}"; else ARTSIZE="340x340"; fi
+  if [[ $LOGOSIZE =~ ^[0-9]+$ ]] && [[ $LOGOSIZE -ge 100 ]]; then LOGOSIZE="${LOGOSIZE}x${LOGOSIZE}"; else LOGOSIZE="110x110"; fi
   
   if [[ -z $DURATIONS ]]; then 							# Durations for reporting in either hours or minutes. If not set, or not explicitly set to 'hours', minutes is the default.
     DURATIONS="MINUTES"
