@@ -27,13 +27,22 @@ else
 fi
 }
 	
+# Composers and Compositions are only offered if this table has entries that match a composer, or a composition
+# (without its trailing bracketed part), in the music database. Otherwise their lists would be empty, and choosing
+# one would just drop back to the menu. Entries matching neither ("Fruit Salad") are still valid speech items.
+PHON_COMPOSERS=$("${PROCONN[@]}" -N -B -e "select count(*) from $PHONEME_TABLE where phrase in (select distinct composer from global_recordings)" 2>/dev/null)
+PHON_COMPOSITIONS=$("${PROCONN[@]}" -N -B -e "select count(*) from $PHONEME_TABLE where phrase in (select distinct trim(left(composition, char_length(composition) - locate('(', reverse(composition)))) from global_recordings)" 2>/dev/null)
+MGMTOPTIONS=()
+if [[ ${PHON_COMPOSERS:-0} -gt 0 ]]; then MGMTOPTIONS+=("composers" "Composers"); fi
+if [[ ${PHON_COMPOSITIONS:-0} -gt 0 ]]; then MGMTOPTIONS+=("compositions" "Compositions"); fi
+MGMTOPTIONS+=("new" "New speech item" "old" "Delete speech item")
+RADIOITEMS=(); FIRSTITEM="ON"
+for ((i=0; i<${#MGMTOPTIONS[@]}; i+=2)); do RADIOITEMS+=("${MGMTOPTIONS[i]}" "${MGMTOPTIONS[i+1]}" "$FIRSTITEM"); FIRSTITEM="OFF"; done
+
 CHOICE=$(dialog --no-tags --backtitle "Giocoso Announcement Management" \
   --title " Select Management Option " \
-  --radiolist "\nWhat do you want to manage?" 16 80 2 \
-  "composers" "Composers" ON \
-  "compositions" "Compositions" OFF \
-  "new" "New speech item" OFF \
-  "old" "Delete speech item" OFF \
+  --radiolist "\nWhat do you want to manage?" 16 80 4 \
+  "${RADIOITEMS[@]}" \
   3>&1 1>&2 2>&3)
 
 DIALOGSTATUS=$?
