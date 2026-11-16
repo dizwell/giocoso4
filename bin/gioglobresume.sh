@@ -56,6 +56,7 @@ if [[ ! -z $RESUMPTION ]]; then
 else
   dialog --stdout --backtitle "Giocoso Global Resume" --title " Nothing found to resume! " --msgbox "\nThe global database is referencing a recording which appears not to exist, so playback can't be resumed." 10 80
 fi
+rm -f "$CONFDIR/txt/searchfilter.txt" "$CONFDIR/txt/repeat.txt" 2>/dev/null    # The resumed play is over, however it ended: minig must see that, and a Repeat mustn't carry over
 }
 
 function glob_compute_duration {

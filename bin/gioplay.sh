@@ -256,10 +256,15 @@ while [[ $PLAYS -le $LINESELECTIONS ]]; do
     echo -en "\033]0; Now playing: $TERMTITLE \007\c"
   fi
   play_music
-  ((PLAYS++))
-  ((LINENUM++))
+  if [[ -f $CONFDIR/txt/repeat.txt ]]; then                                  # Repeat: play the same recording again, as filter and SQL plays do
+    rm -f "$CONFDIR/txt/repeat.txt"
+  else
+    ((PLAYS++))
+    ((LINENUM++))
+  fi
   rm -f "$CONFDIR/txt/skip.txt" >/dev/null 2>&1
 done
+rm -f "$CONFDIR/txt/searchfilter.txt" 2>/dev/null                              # The playlist is over (or found nothing): minig must see that
 }
 
 if [[ $1 == default ]]; then play_default; fi
