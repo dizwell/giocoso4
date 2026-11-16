@@ -203,8 +203,8 @@ if [[ $CHOICE == "new" ]]; then
 
 fi
 
-if [[ $CHOICE == "compositions" ]]; then
-
+function pick_composition_letter {
+# The A to Z selector for compositions. Returns non-zero if the user cancels.
   LETTER=$(dialog --no-tags --backtitle "Giocoso Announcement Management" \
     --title " Select Initial Letter " \
     --radiolist "\nSelect the first letter of the composition name:" 18 80 16 \
@@ -237,11 +237,11 @@ if [[ $CHOICE == "compositions" ]]; then
     "Other" "Other" OFF \
     3>&1 1>&2 2>&3)
 
-  DIALOGSTATUS=$?
+  return $?
+}
 
-  if [[ $DIALOGSTATUS -ne 0 ]]; then
-    return
-  fi
+if [[ $CHOICE == "compositions" ]]; then
+  pick_composition_letter || return
 fi
 
 DIALOGFILE="$CONFDIR/tmp/phonemelist.txt"
@@ -331,6 +331,20 @@ while true; do
       print "OFF"
     }' > "$DIALOGFILE"
 
+  fi
+
+  if [[ $CHOICE == "compositions" && ! -s $DIALOGFILE && -n $PROCESSFILTER ]]; then
+    dialog --backtitle "Giocoso Announcement Management" --title " Nothing to show " --msgbox "\nEvery composition beginning with $LETTER has already been processed.\n\nPress OK to see them all." 10 70
+    PROCESSFILTER=""; LASTPHRASE=""
+    continue
+  fi
+
+  if [[ $CHOICE == "compositions" && ! -s $DIALOGFILE ]]; then
+    if [[ $LETTER == "Other" ]]; then STARTWORD="anything other than a letter"; else STARTWORD="$LETTER"; fi
+    dialog --backtitle "Giocoso Announcement Management" --title " Nothing to show " --msgbox "\nThere are no compositions beginning with $STARTWORD in your pronunciation list.\n\nPress OK to choose another letter." 10 70
+    PROCESSFILTER=""; LASTPHRASE=""
+    pick_composition_letter || return
+    continue
   fi
 
   if [[ $CHOICE == "compositions" ]]; then
