@@ -144,6 +144,7 @@ rm -f "$TMPFILE"
 
 function dump_db {
 BACKUPSUCCESS="NO"	
+if [[ -z $MARIADBDUMP ]]; then BACKUPSUCCESS="NODUMP"; return; fi     # No dump program found: say so, and don't create an empty backup file
 "$MARIADBDUMP" -h "$SOURCEHOST" -P "$SOURCEPORT" -u "$SOURCEUSR" -p"$SOURCEPWD" "$SOURCEDB" > "$BACKUP_DIR/giocoso4-$(date +%Y%m%d).sql" 2>/dev/null
 if [[ $? -eq 0 ]]; then
   BACKUPSUCCESS="YES"
@@ -199,7 +200,7 @@ if [[ $1 == "backup" && $2 == "noprompt" ]]; then
   SOURCEPWD="giocoso4"
   SOURCEDB="giocoso4"
   dump_db
-  if [[ $BACKUPSUCCESS == "YES" ]]; then echo "Database backup complete."; else echo "Database backup failed."; fi
+  if [[ $BACKUPSUCCESS == "YES" ]]; then echo "Database backup complete."; elif [[ $BACKUPSUCCESS == "NODUMP" ]]; then echo "Database backup failed: no MariaDB dump program could be found."; else echo "Database backup failed."; fi
   return
 fi
 
@@ -228,6 +229,8 @@ elif [[ $1 == "backup" ]]; then
     dump_db
 	if [[ $BACKUPSUCCESS == "YES" ]]; then
 	  dialog --backtitle "Giocoso Database Backup" --title " Database Backup " --msgbox "\nDatabase backup completed successfully.\n" 15 70
+    elif [[ $BACKUPSUCCESS == "NODUMP" ]]; then
+	 dialog --backtitle "Giocoso Database Backup" --title " Database Backup " --msgbox "\nDatabase backup failed: no MariaDB dump program could be found.\n" 15 70
     else 
 	 dialog --backtitle "Giocoso Database Backup" --title " Database Backup " --msgbox "\nDatabase backup failed for some reason.\n" 15 70
     fi

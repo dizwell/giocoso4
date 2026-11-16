@@ -208,16 +208,15 @@ if [[ -f "$CONFDIR/txt/giocoso.conf" ]]; then
 	THISHOST=$(hostname); THISHOST="${THISHOST%%.*}"
   fi
   
-  if [[ $(uname -s) == Darwin ]]; then
-      if [[ -x /opt/local/lib/mariadb-11.4/bin/mariadb-dump ]]; then
-          MARIADBDUMP=/opt/local/lib/mariadb-11.4/bin/mariadb-dump
-      elif [[ -x /opt/homebrew/bin/mariadb-dump ]]; then
-          MARIADBDUMP=/opt/homebrew/bin/mariadb-dump
-      elif [[ -x /usr/local/bin/mariadb-dump ]]; then
-          MARIADBDUMP=/usr/local/bin/mariadb-dump
-      fi
-  else
-      MARIADBDUMP=$(command -v mariadb-dump)
+  # The MariaDB dump program: whichever the search path finds (MariaDB ships it as mariadb-dump, and also under its
+  # older name, mysqldump). On a Mac, if the search path is bare (as for a scheduled backup), also try the folders
+  # where MacPorts (after 'port select') and Homebrew put it. No MariaDB version number is assumed anywhere.
+  MARIADBDUMP=$(command -v mariadb-dump || command -v mysqldump)
+  if [[ -z $MARIADBDUMP && $(uname -s) == Darwin ]]; then
+    for d in /opt/local/bin /opt/homebrew/bin /usr/local/bin; do
+      if [[ -x $d/mariadb-dump ]]; then MARIADBDUMP=$d/mariadb-dump; break; fi
+      if [[ -x $d/mysqldump ]]; then MARIADBDUMP=$d/mysqldump; break; fi
+    done
   fi
   
   if ! [[ -z $ANNOUNCEPLAY ]]; then 								# Announcements, if set, should be set to 'No' by default unless explicitly set to yes.
