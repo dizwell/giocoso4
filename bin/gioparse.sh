@@ -80,7 +80,7 @@ if [[ -f "$CONFDIR/txt/giocoso.conf" ]]; then
   # (300 for album art, 100 for the logo) is accepted: anything else, including a left-over "340x340" from an
   # earlier read when the line is missing from the file, becomes the default (340 and 110).
   if [[ $ARTSIZE =~ ^[0-9]+$ ]] && [[ $ARTSIZE -ge 300 ]]; then ARTSIZE="${ARTSIZE}x${ARTSIZE}"; else ARTSIZE="340x340"; fi
-  if [[ $LOGOSIZE =~ ^[0-9]+$ ]] && [[ $LOGOSIZE -ge 100 ]]; then LOGOSIZE="${LOGOSIZE}x${LOGOSIZE}"; else LOGOSIZE="110x110"; fi
+  if [[ $LOGOSIZE =~ ^[0-9]{1,4}$ ]] && (( 10#$LOGOSIZE >= 100 && 10#$LOGOSIZE <= 400 )); then LOGOSIZE="$((10#$LOGOSIZE))x$((10#$LOGOSIZE))"; else LOGOSIZE="110x110"; fi   # 100 to 400: default 110
   
   if [[ -z $DURATIONS ]]; then 							# Durations for reporting in either hours or minutes. If not set, or not explicitly set to 'hours', minutes is the default.
     DURATIONS="MINUTES"
