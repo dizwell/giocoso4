@@ -201,7 +201,7 @@ for FILE in "$BACKUP_DIR"/*.sql; do
   [[ -f "$FILE" ]] && DBLIST+=("$(basename "$FILE")" "$(basename "$FILE")" off)
 done
 if [[ ${#DBLIST[@]} -eq 0 ]]; then                    # An empty list can't be drawn: say why there's nothing to choose
-  dialog --backtitle "Giocoso Database Restore" --title " No Backups Found " --msgbox "\nNo database backups were found in your backup folder:\n\n    $BACKUP_DIR\n\nPress OK to return to the menu." 12 70
+  dialog --backtitle "Giocoso Database Restore" --title " No Backups Found " --msgbox "\nNo database backups were found in your configured backup folder, $BACKUP_DIR.\n\nPress OK to return to the main menu." 10 70
   return 1
 fi
 RESULT=$(dialog --no-tags --backtitle "Giocoso Database Backup & Restore" --title " Select Database Backup " --radiolist "\nPlease select the backup you wish to restore:\n" 15 80 8 "${DBLIST[@]}" 2>&1 >/dev/tty)
