@@ -208,7 +208,7 @@ if [[ $($METAFLAC --show-md5sum "$f" 2>&1 | $GREPPROG -i error | wc -l) -eq 0 ]]
     if [[ $FORCE_PULSE -eq 1 ]]; then
       AUDIODEVICE="PulseAudio"
       # Do this if running on Linux but use of Pulseaudio is forced in configuration file
-      $FFMPEG -stats_period 1 -f concat -safe 0 -ss "$GRESUMEFROM" -i "$CONFDIR/txt/giocoso-tracklist.txt" -af "$AF_FILTER" -max_muxing_queue_size 4096 -f pulse - |& gawk -v RS="\r" -v FS='[= ]' 'NR > 1 && /time=/ {print $4; fflush("/dev/stdout")}' > "$CONFDIR/txt/playcounter.txt" & source "$CONFDIR/bin/giocount.sh" "${PLAYSECS%.*}"
+      "${PULSEENV[@]}" $FFMPEG -stats_period 1 -f concat -safe 0 -ss "$GRESUMEFROM" -i "$CONFDIR/txt/giocoso-tracklist.txt" -af "$AF_FILTER" -max_muxing_queue_size 4096 -f pulse - |& gawk -v RS="\r" -v FS='[= ]' 'NR > 1 && /time=/ {print $4; fflush("/dev/stdout")}' > "$CONFDIR/txt/playcounter.txt" & source "$CONFDIR/bin/giocount.sh" "${PLAYSECS%.*}"
     else
       # Do this if running on Linux and Pulseaudio hasn't been forced on
       $FFMPEG -stats_period 1 -f concat -safe 0 -ss "$GRESUMEFROM" -i "$CONFDIR/txt/giocoso-tracklist.txt" -af "$AF_FILTER" -max_muxing_queue_size 4096 -f alsa "$AUDIODEVICE" |& gawk -v RS="\r" -v FS='[= ]' 'NR > 1 && /time=/ {print $4; fflush("/dev/stdout")}' > "$CONFDIR/txt/playcounter.txt" & source "$CONFDIR/bin/giocount.sh" "${PLAYSECS%.*}"
