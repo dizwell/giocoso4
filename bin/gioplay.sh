@@ -227,7 +227,7 @@ while IFS= read -r FOLDER; do
     fi
   fi
 ((FOLDERCOUNT++))
-done <<< "$(cat $playlist_name)"
+done <<< "$(cat "$playlist_name")"
 
 echo "$VALIDDIRS" > "$CONFDIR/txt/searchfilter.txt"
 $SEDPROG -i '/^[[:space:]]*$/d' "$CONFDIR/txt/searchfilter.txt" 2>/dev/null      # Remove blank line from top of file list, should there be one
