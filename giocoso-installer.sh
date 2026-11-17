@@ -206,7 +206,7 @@ count=0
   for f in "${components[@]}"; do
     downloaded=0
     for attempt in {1..5}; do
-	  if wget -q --tries=1 "$REMOTESOURCE/art/$f" -O "$NEWCONF/art/$f"; then
+	  if wget -q --tries=1 "$REMOTESOURCE/art/$f" -O "$NEWCONF/art/$f" && [[ -s "$NEWCONF/art/$f" ]]; then
 	    downloaded=1
 	    break
 	  fi
@@ -235,7 +235,7 @@ count=0
   for f in "${components[@]}"; do
     downloaded=0
     for attempt in {1..5}; do
-      if wget -q --tries=1 "$REMOTESOURCE/exec/$f" -O "$NEWCONF/exec/$f"; then
+      if wget -q --tries=1 "$REMOTESOURCE/exec/$f" -O "$NEWCONF/exec/$f" && [[ -s "$NEWCONF/exec/$f" ]]; then
   	    downloaded=1
   	    break
   	  fi
@@ -267,7 +267,7 @@ count=0
   for f in "${components[@]}"; do
 	downloaded=0
     for attempt in {1..5}; do
-  	  if wget -q --tries=1 "$REMOTESOURCE/txt/$f" -O "$NEWCONF/txt/$f"; then
+  	  if wget -q --tries=1 "$REMOTESOURCE/txt/$f" -O "$NEWCONF/txt/$f" && [[ -s "$NEWCONF/txt/$f" ]]; then
   	    downloaded=1
   	    break
   	  fi
@@ -309,7 +309,7 @@ if [[ $OS == "DARWIN" ]]; then
   rm -f "$NEWCONF/db/global_phonemes.sql"
   downloaded=0
   for attempt in {1..5}; do
-    if wget -q --tries=1 "$REMOTESOURCE/db/global_phonemes.sql" -O "$NEWCONF/db/global_phonemes.sql"; then
+    if wget -q --tries=1 "$REMOTESOURCE/db/global_phonemes.sql" -O "$NEWCONF/db/global_phonemes.sql" && [[ -s "$NEWCONF/db/global_phonemes.sql" ]]; then
       downloaded=1
       break
     fi
@@ -340,7 +340,7 @@ else
   rm -f "$NEWCONF/db/global_phonemes.sql"
   downloaded=0
   for attempt in {1..5}; do
-    if wget -q --tries=1 "$REMOTESOURCE/db/global_phonemes.sql" -O "$NEWCONF/db/global_phonemes.sql"; then
+    if wget -q --tries=1 "$REMOTESOURCE/db/global_phonemes.sql" -O "$NEWCONF/db/global_phonemes.sql" && [[ -s "$NEWCONF/db/global_phonemes.sql" ]]; then
       downloaded=1
       break
     fi
@@ -361,7 +361,7 @@ if ! [[ $OS == "DARWIN" ]]; then
   if [[ ! -f "$HOME/.local/share/applications/giocoso.desktop" ]]; then
     downloaded=0
     for attempt in {1..5}; do
-      if wget -q --tries=1 "$REMOTESOURCE/giocoso.desktop" -O "$HOME/.local/share/applications/giocoso.desktop"; then
+      if wget -q --tries=1 "$REMOTESOURCE/giocoso.desktop" -O "$HOME/.local/share/applications/giocoso.desktop" && [[ -s "$HOME/.local/share/applications/giocoso.desktop" ]]; then
         downloaded=1
         break
       fi

@@ -661,7 +661,11 @@ case $OSFAMILY in
     sudo timedatectl set-ntp true >/dev/null 2>&1
     echo ""
     echo "    Getting the Giocoso installer ready. Please bear with us for a few moments..."
-    wget -qO- https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /usr/share/keyrings/wezterm-fury.gpg >/dev/null 2>&1
+    for attempt in {1..5}; do                                                 # WezTerm's signing key: up to five tries, only a non-empty file counts
+      wget -q --tries=1 https://apt.fury.io/wez/gpg.key -O /tmp/wezterm-fury.key && [[ -s /tmp/wezterm-fury.key ]] && break
+      rm -f /tmp/wezterm-fury.key; sleep 1
+    done
+    sudo gpg --yes --dearmor -o /usr/share/keyrings/wezterm-fury.gpg /tmp/wezterm-fury.key >/dev/null 2>&1; rm -f /tmp/wezterm-fury.key
     echo 'deb [signed-by=/usr/share/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list >/dev/null
     sudo chmod 644 /usr/share/keyrings/wezterm-fury.gpg >/dev/null 2>&1
     sudo apt-get -o DPkg::Lock::Timeout=300 update -qq
@@ -755,7 +759,11 @@ case $OSFAMILY in
     sudo timedatectl set-ntp true >/dev/null 2>&1
     echo ""
     echo "    Getting the Giocoso installer ready. Please bear with us for a few moments..."
-    wget -qO- https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /usr/share/keyrings/wezterm-fury.gpg >/dev/null 2>&1
+    for attempt in {1..5}; do                                                 # WezTerm's signing key: up to five tries, only a non-empty file counts
+      wget -q --tries=1 https://apt.fury.io/wez/gpg.key -O /tmp/wezterm-fury.key && [[ -s /tmp/wezterm-fury.key ]] && break
+      rm -f /tmp/wezterm-fury.key; sleep 1
+    done
+    sudo gpg --yes --dearmor -o /usr/share/keyrings/wezterm-fury.gpg /tmp/wezterm-fury.key >/dev/null 2>&1; rm -f /tmp/wezterm-fury.key
     echo 'deb [signed-by=/usr/share/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list > /dev/null
     sudo chmod 644 /usr/share/keyrings/wezterm-fury.gpg >/dev/null 2>&1
     sudo apt-get -o DPkg::Lock::Timeout=300 update -qq
