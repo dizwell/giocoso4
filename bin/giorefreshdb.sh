@@ -111,120 +111,86 @@ else
 fi
 }
 
-function scan_flacs {
-TOTALDIRS=$(cat "$CONFDIR/txt/dbops/new_flacs.txt" | wc -l)   # Number of folders to analyze	
-readarray -t newflacfolders < "$CONFDIR/txt/dbops/new_flacs.txt"
-	
-if [[ $PROMPTS == "on" ]]; then 
-  tput cup 25 1; echo -e "                                                                                          "
-  for f in "${newflacfolders[@]}"; do
-    tput civis; tput cup 25 1; echo -en "                                                                                             "  # Blank out 93 characters on line 25
-	tput cup 25 4; tput setaf $INFOTEXT; tput civis; DISPLAYDIR=${f/$MUSICDIR/…};                                                        # Remove MUSICDIR from path
-    if [[ ${#DISPLAYDIR} -gt 90 ]]; then
-	  DISPLAYDIR=$(printf '%s' "$DISPLAYDIR" | cut -c1-85)	# Trim to 85 characters long if longer
-	  DISPLAYDIR="$DISPLAYDIR>"
-	fi
-	printf '%s' "$DISPLAYDIR"
-	DIRCOUNT=$((DIRCOUNT+1)); NEWPERCENTAGE=$(bc <<<"scale=2; $DIRCOUNT/$TOTALDIRS*100"); NEWPERCENTAGE=${NEWPERCENTAGE%.*}
-	if [[ $DIRCOUNT -eq 1 ]]; then
-	  echo $PERCENTAGE | dialog --backtitle "Giocoso Database Refresh" --gauge "Analyzing music files in $TOTALDIRS folders..." 10 70 0  # We fake an early dialog entry to indicate progress, otherwise they will stare at a blank screen for a long time when handling a large music collection
-	elif [[ $((NEWPERCENTAGE - $PERCENTAGE)) -ge 2 ]]; then
-	  PERCENTAGE=$NEWPERCENTAGE
-	  echo $PERCENTAGE | dialog --backtitle "Giocoso Database Refresh" --gauge "Analyzing music files in $TOTALDIRS folders..." 10 70 0
-	fi
-
-	if [[ ! -z $f ]]; then
-	  for g in "$f"/*.flac; do
-	    # Some players and streamers need a seek table: give any FLAC without one a 100-point table. Existing tables are left
-	    # alone, except an empty one (0 points, which some converters write): that counts as none, and is removed and replaced.
-	    SEEKPOINTS=$($METAFLAC --list --block-type=SEEKTABLE "$g" 2>/dev/null | awk '/seek points:/ {print $3; exit}')
-	    if [[ -z $SEEKPOINTS || $SEEKPOINTS -eq 0 ]]; then
-	      [[ -n $SEEKPOINTS ]] && $METAFLAC --remove --block-type=SEEKTABLE "$g" >/dev/null 2>&1
-	      $METAFLAC --add-seekpoint=100x "$g" >/dev/null 2>&1
-	    fi
-	    ARTIST=$($METAFLAC $UTFCHARS --show-tag=Artist "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
-	    ALBUM=$($METAFLAC $UTFCHARS --show-tag=Album "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
-	    GENRE=$($METAFLAC $UTFCHARS --show-tag=Genre "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
-	    COMMENT=$($METAFLAC $UTFCHARS --show-tag=Comment "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
-	    PERFORMER=$($METAFLAC $UTFCHARS --show-tag=Performer "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
-	    if [[ -z $PERFORMER ]]; then
-	      PERFORMER=$(echo "$COMMENT" | cut -d "," -f 1); PERFORMER=$(echo "$PERFORMER" | cut -d "(" -f 1); PERFORMER=$(echo "$PERFORMER" | cut -d ":" -f 1)
-	    fi
-	    TRACKNUMBER=$($METAFLAC $UTFCHARS --show-tag=Tracknumber "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
-	    TITLE=$($METAFLAC $UTFCHARS --show-tag=Title "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
-	    DURATION=$($FFPROBE -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$g" 2>/dev/null)
-	    DURATION=$(echo "$DURATION" | bc)
-
-	    # Make the variables double-quote free -even the ones unlikely to have double quotes, just in case. Replace " with ##@##
-	    # which is a 'weird' combo of characers unlikely to exist in nature. That way we can spot them again later on!
-	    ARTIST="${ARTIST//\"/##@##}"
-	    ALBUM="${ALBUM//\"/##@##}"
-	    GENRE="${GENRE//\"/##@##}"
-	    COMMENT="${COMMENT//\"/##@##}"
-	    PERFORMER="${PERFORMER//\"/##@##}"
-	    TITLE="${TITLE//\"/##@##}"
-	    FOLDER="${f//\"/##@##}"
-	    # Tags go into a pipe-delimited file, one line per FLAC: a | in a tag would shift every later field, and a line
-	    # break (a multi-line comment, or a tag with several values) would split the line. So strip pipes, and turn
-	    # line breaks into spaces (which also puts several values of one tag on one line, separated by spaces).
-	    for v in ARTIST ALBUM GENRE COMMENT PERFORMER TRACKNUMBER TITLE; do
-	      printf -v "$v" '%s' "${!v//|/}"; printf -v "$v" '%s' "${!v//$'\n'/ }"; printf -v "$v" '%s' "${!v//$'\r'/ }"
-	    done
-
-	    # Now concatenate cleaned variables into one giant string and echo to a CSV delimited by pipes
-	    echo "$FOLDER|$ARTIST|$ALBUM|$GENRE|$COMMENT|$PERFORMER|$TRACKNUMBER|$TITLE|$DURATION" >> "$CONFDIR/txt/dbops/analysed_flacs.txt"
-	  done	  
-	fi
-  done	
-else
-  # Same as above, but without any visible output or concern for constructing visible output, because PROMPTS are off at this point
-  # so we are running non-interactively, probably via cron or similar
-  for f in "${newflacfolders[@]}"; do
-	echo "$(date '+%Y-%m-%d %H:%M:%S') Analysing $f" >> "$CONFDIR/txt/dbops/dbrefresh.log"
-  	if [[ ! -z $f ]]; then
-  	  for g in "$f"/*.flac; do 
-  	    # Some players and streamers need a seek table: give any FLAC without one a 100-point table. Existing tables are left
-  	    # alone, except an empty one (0 points, which some converters write): that counts as none, and is removed and replaced.
-  	    SEEKPOINTS=$($METAFLAC --list --block-type=SEEKTABLE "$g" 2>/dev/null | awk '/seek points:/ {print $3; exit}')
-  	    if [[ -z $SEEKPOINTS || $SEEKPOINTS -eq 0 ]]; then
-  	      [[ -n $SEEKPOINTS ]] && $METAFLAC --remove --block-type=SEEKTABLE "$g" >/dev/null 2>&1
-  	      $METAFLAC --add-seekpoint=100x "$g" >/dev/null 2>&1
-  	    fi
-  	    ARTIST=$($METAFLAC $UTFCHARS --show-tag=Artist "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
-  	    ALBUM=$($METAFLAC $UTFCHARS --show-tag=Album "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
-  	    GENRE=$($METAFLAC $UTFCHARS --show-tag=Genre "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
-  	    COMMENT=$($METAFLAC $UTFCHARS --show-tag=Comment "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
-  	    PERFORMER=$($METAFLAC $UTFCHARS --show-tag=Performer "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
-  	    if [[ -z $PERFORMER ]]; then
-  	      PERFORMER=$(echo "$COMMENT" | cut -d "," -f 1); PERFORMER=$(echo $PERFORMER | cut -d "(" -f 1); PERFORMER=$(echo $PERFORMER | cut -d ":" -f 1)
-  	    fi
-  	    TRACKNUMBER=$($METAFLAC $UTFCHARS --show-tag=Tracknumber "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
-  	    TITLE=$($METAFLAC $UTFCHARS --show-tag=Title "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
-  	    DURATION=$($FFPROBE -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$g" 2>/dev/null)
-  	    DURATION=$(echo "$DURATION" | bc)
-
-  	    # Make the variables double-quote free -even the ones unlikely to have double quotes, just in case. Replace " with ##@##
-  	    # which is a 'weird' combo of characers unlikely to exist in nature. That way we can spot them again later on!
-  	    ARTIST="${ARTIST//\"/##@##}"
-  	    ALBUM="${ALBUM//\"/##@##}"
-  	    GENRE="${GENRE//\"/##@##}"
-  	    COMMENT="${COMMENT//\"/##@##}"
-  	    PERFORMER="${PERFORMER//\"/##@##}"
-  	    TITLE="${TITLE//\"/##@##}"
-  	    FOLDER="${f//\"/##@##}"
-  	    # Tags go into a pipe-delimited file, one line per FLAC: a | in a tag would shift every later field, and a line
-  	    # break (a multi-line comment, or a tag with several values) would split the line. So strip pipes, and turn
-  	    # line breaks into spaces (which also puts several values of one tag on one line, separated by spaces).
-  	    for v in ARTIST ALBUM GENRE COMMENT PERFORMER TRACKNUMBER TITLE; do
-  	      printf -v "$v" '%s' "${!v//|/}"; printf -v "$v" '%s' "${!v//$'\n'/ }"; printf -v "$v" '%s' "${!v//$'\r'/ }"
-  	    done
-
-  	    # Now concatenate cleaned variables into one giant string and echo to a CSV delimited by pipes
-  	    echo "$FOLDER|$ARTIST|$ALBUM|$GENRE|$COMMENT|$PERFORMER|$TRACKNUMBER|$TITLE|$DURATION" >> "$CONFDIR/txt/dbops/analysed_flacs.txt"
-  	  done	  
-  	fi
-  done	
+function show_scan_progress {
+# On-screen feedback while scanning: the folder being analysed (on line 25) and a percentage gauge.
+tput civis; tput cup 25 1; echo -en "                                                                                             "  # Blank out 93 characters on line 25
+tput cup 25 4; tput setaf $INFOTEXT; tput civis; DISPLAYDIR=${f/$MUSICDIR/…};                                                        # Remove MUSICDIR from path
+if [[ ${#DISPLAYDIR} -gt 90 ]]; then
+  DISPLAYDIR=$(printf '%s' "$DISPLAYDIR" | cut -c1-85)  # Trim to 85 characters long if longer
+  DISPLAYDIR="$DISPLAYDIR>"
 fi
+printf '%s' "$DISPLAYDIR"
+DIRCOUNT=$((DIRCOUNT+1)); NEWPERCENTAGE=$(bc <<<"scale=2; $DIRCOUNT/$TOTALDIRS*100"); NEWPERCENTAGE=${NEWPERCENTAGE%.*}
+if [[ $DIRCOUNT -eq 1 ]]; then
+  echo $PERCENTAGE | dialog --backtitle "Giocoso Database Refresh" --gauge "Analyzing music files in $TOTALDIRS folders..." 10 70 0  # We fake an early dialog entry to indicate progress, otherwise they will stare at a blank screen for a long time when handling a large music collection
+elif [[ $((NEWPERCENTAGE - $PERCENTAGE)) -ge 2 ]]; then
+  PERCENTAGE=$NEWPERCENTAGE
+  echo $PERCENTAGE | dialog --backtitle "Giocoso Database Refresh" --gauge "Analyzing music files in $TOTALDIRS folders..." 10 70 0
+fi
+}
+
+function analyse_folder {
+# Analyse every FLAC in one folder: give it a seek table if it lacks one, read its tags, and add a line for it to
+# analysed_flacs.txt. One copy only, used by every refresh, whether shown on screen or run unattended.
+for g in "$f"/*.flac; do
+  # Some players and streamers need a seek table: give any FLAC without one a 100-point table. Existing tables are left
+  # alone, except an empty one (0 points, which some converters write): that counts as none, and is removed and replaced.
+  SEEKPOINTS=$($METAFLAC --list --block-type=SEEKTABLE "$g" 2>/dev/null | awk '/seek points:/ {print $3; exit}')
+  if [[ -z $SEEKPOINTS || $SEEKPOINTS -eq 0 ]]; then
+    [[ -n $SEEKPOINTS ]] && $METAFLAC --remove --block-type=SEEKTABLE "$g" >/dev/null 2>&1
+    $METAFLAC --add-seekpoint=100x "$g" >/dev/null 2>&1
+  fi
+  ARTIST=$($METAFLAC $UTFCHARS --show-tag=Artist "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
+  ALBUM=$($METAFLAC $UTFCHARS --show-tag=Album "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
+  GENRE=$($METAFLAC $UTFCHARS --show-tag=Genre "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
+  COMMENT=$($METAFLAC $UTFCHARS --show-tag=Comment "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
+  PERFORMER=$($METAFLAC $UTFCHARS --show-tag=Performer "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
+  if [[ -z $PERFORMER ]]; then
+    PERFORMER=$(echo "$COMMENT" | cut -d "," -f 1); PERFORMER=$(echo "$PERFORMER" | cut -d "(" -f 1); PERFORMER=$(echo "$PERFORMER" | cut -d ":" -f 1)
+  fi
+  TRACKNUMBER=$($METAFLAC $UTFCHARS --show-tag=Tracknumber "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
+  TITLE=$($METAFLAC $UTFCHARS --show-tag=Title "$g" | $SEDPROG 's/.*=//g' 2>/dev/null)
+  DURATION=$($FFPROBE -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$g" 2>/dev/null)
+  DURATION=$(echo "$DURATION" | bc)
+
+  # Make the variables double-quote free -even the ones unlikely to have double quotes, just in case. Replace " with ##@##
+  # which is a 'weird' combo of characers unlikely to exist in nature. That way we can spot them again later on!
+  ARTIST="${ARTIST//\"/##@##}"
+  ALBUM="${ALBUM//\"/##@##}"
+  GENRE="${GENRE//\"/##@##}"
+  COMMENT="${COMMENT//\"/##@##}"
+  PERFORMER="${PERFORMER//\"/##@##}"
+  TITLE="${TITLE//\"/##@##}"
+  FOLDER="${f//\"/##@##}"
+  # Tags go into a pipe-delimited file, one line per FLAC: a | in a tag would shift every later field, and a line
+  # break (a multi-line comment, or a tag with several values) would split the line. So strip pipes, and turn
+  # line breaks into spaces (which also puts several values of one tag on one line, separated by spaces).
+  for v in ARTIST ALBUM GENRE COMMENT PERFORMER TRACKNUMBER TITLE; do
+    printf -v "$v" '%s' "${!v//|/}"; printf -v "$v" '%s' "${!v//$'\n'/ }"; printf -v "$v" '%s' "${!v//$'\r'/ }"
+  done
+
+  # Now concatenate cleaned variables into one giant string and echo to a CSV delimited by pipes
+  echo "$FOLDER|$ARTIST|$ALBUM|$GENRE|$COMMENT|$PERFORMER|$TRACKNUMBER|$TITLE|$DURATION" >> "$CONFDIR/txt/dbops/analysed_flacs.txt"
+done
+}
+
+function scan_flacs {
+TOTALDIRS=$(cat "$CONFDIR/txt/dbops/new_flacs.txt" | wc -l)   # Number of folders to analyze
+readarray -t newflacfolders < "$CONFDIR/txt/dbops/new_flacs.txt"
+
+if [[ $PROMPTS == "on" ]]; then
+  tput cup 25 1; echo -e "                                                                                          "
+fi
+for f in "${newflacfolders[@]}"; do
+  if [[ $PROMPTS == "on" ]]; then
+    show_scan_progress                                         # On screen: show the folder and the gauge
+  else
+    echo "$(date '+%Y-%m-%d %H:%M:%S') Analysing $f" >> "$CONFDIR/txt/dbops/dbrefresh.log"   # Unattended (cron, say): just log it
+  fi
+  if [[ -n $f ]]; then
+    analyse_folder
+  fi
+done
 }
 
 function refresh_database {
