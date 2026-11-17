@@ -164,6 +164,12 @@ if [[ $PROMPTS == "on" ]]; then
 	    PERFORMER="${PERFORMER//\"/##@##}"
 	    TITLE="${TITLE//\"/##@##}"
 	    FOLDER="${f//\"/##@##}"
+	    # Tags go into a pipe-delimited file, one line per FLAC: a | in a tag would shift every later field, and a line
+	    # break (a multi-line comment, or a tag with several values) would split the line. So strip pipes, and turn
+	    # line breaks into spaces (which also puts several values of one tag on one line, separated by spaces).
+	    for v in ARTIST ALBUM GENRE COMMENT PERFORMER TRACKNUMBER TITLE; do
+	      printf -v "$v" '%s' "${!v//|/}"; printf -v "$v" '%s' "${!v//$'\n'/ }"; printf -v "$v" '%s' "${!v//$'\r'/ }"
+	    done
 
 	    # Now concatenate cleaned variables into one giant string and echo to a CSV delimited by pipes
 	    echo "$FOLDER|$ARTIST|$ALBUM|$GENRE|$COMMENT|$PERFORMER|$TRACKNUMBER|$TITLE|$DURATION" >> "$CONFDIR/txt/dbops/analysed_flacs.txt"
@@ -206,6 +212,12 @@ else
   	    PERFORMER="${PERFORMER//\"/##@##}"
   	    TITLE="${TITLE//\"/##@##}"
   	    FOLDER="${f//\"/##@##}"
+  	    # Tags go into a pipe-delimited file, one line per FLAC: a | in a tag would shift every later field, and a line
+  	    # break (a multi-line comment, or a tag with several values) would split the line. So strip pipes, and turn
+  	    # line breaks into spaces (which also puts several values of one tag on one line, separated by spaces).
+  	    for v in ARTIST ALBUM GENRE COMMENT PERFORMER TRACKNUMBER TITLE; do
+  	      printf -v "$v" '%s' "${!v//|/}"; printf -v "$v" '%s' "${!v//$'\n'/ }"; printf -v "$v" '%s' "${!v//$'\r'/ }"
+  	    done
 
   	    # Now concatenate cleaned variables into one giant string and echo to a CSV delimited by pipes
   	    echo "$FOLDER|$ARTIST|$ALBUM|$GENRE|$COMMENT|$PERFORMER|$TRACKNUMBER|$TITLE|$DURATION" >> "$CONFDIR/txt/dbops/analysed_flacs.txt"
@@ -237,7 +249,7 @@ fi
 "${PROCONN[@]}" -N -B -e "delete from tracks" 2>/dev/null
 
 # Regardless of refresh type, now load the analysed flacs file into an empty tracks table
-"${PROCONN[@]}" -e "LOAD DATA LOCAL INFILE '$CONFDIR/txt/dbops/analysed_flacs.txt' INTO TABLE tracks CHARACTER SET utf8mb4 FIELDS TERMINATED BY '|'" 2>/dev/null
+"${PROCONN[@]}" -e "LOAD DATA LOCAL INFILE '$CONFDIR/txt/dbops/analysed_flacs.txt' INTO TABLE tracks CHARACTER SET utf8mb4 FIELDS TERMINATED BY '|' ESCAPED BY ''" 2>/dev/null
 
 # Now to replace the weirdness in the various columns of TRACKS, if any. This puts back double quotes.
 "${PROCONN[@]}" -N -B -e "update tracks set composer=replace(composer,'##@##','\"');" >/dev/null 2>&1
