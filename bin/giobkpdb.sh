@@ -145,10 +145,20 @@ rm -f "$TMPFILE"
 function dump_db {
 BACKUPSUCCESS="NO"	
 if [[ -z $MARIADBDUMP ]]; then BACKUPSUCCESS="NODUMP"; return; fi     # No dump program found: say so, and don't create an empty backup file
-"$MARIADBDUMP" -h "$SOURCEHOST" -P "$SOURCEPORT" -u "$SOURCEUSR" -p"$SOURCEPWD" "$SOURCEDB" > "$BACKUP_DIR/giocoso4-$(date +%Y%m%d).sql" 2>/dev/null
-if [[ $? -eq 0 ]]; then
+# Each backup gets its own name, to the second, so no backup ever overwrites another. The dump goes to a temporary
+# .part file first, which only becomes a .sql backup if the dump succeeds: a failed dump is deleted, so the Restore
+# list only ever shows complete backups.
+BACKUPFILE="$BACKUP_DIR/giocoso4-$(date +%Y%m%d-%H%M%S).sql"
+if "$MARIADBDUMP" -h "$SOURCEHOST" -P "$SOURCEPORT" -u "$SOURCEUSR" -p"$SOURCEPWD" "$SOURCEDB" > "$BACKUPFILE.part" 2>/dev/null && mv -f "$BACKUPFILE.part" "$BACKUPFILE"; then
   BACKUPSUCCESS="YES"
+  # Keep only the ten newest backups of this kind (the names sort oldest to newest). Older-style one-a-day backups
+  # (giocoso4-YYYYMMDD.sql) are left alone.
+  mapfile -t OLDBKPS < <(printf '%s\n' "$BACKUP_DIR"/giocoso4-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9].sql | LC_ALL=C sort)
+  if [[ ${#OLDBKPS[@]} -gt 10 && -f ${OLDBKPS[0]} ]]; then
+    rm -f "${OLDBKPS[@]:0:${#OLDBKPS[@]}-10}"
+  fi
 else
+  rm -f "$BACKUPFILE.part"
   BACKUPSUCCESS="NO"
 fi
 }
