@@ -283,11 +283,11 @@ elif [[ $1 == "backup" ]]; then
   if prompt_source; then
     dump_db
 	if [[ $BACKUPSUCCESS == "YES" ]]; then
-	  dialog --backtitle "Giocoso Database Backup" --title " Database Backup " --msgbox "\nDatabase backup completed successfully.\n" 15 70
+	  dialog --backtitle "Giocoso Database Backup" --title " Database Backup " --msgbox "\nDatabase backup completed successfully.\n" 10 70
     elif [[ $BACKUPSUCCESS == "NODUMP" ]]; then
-	 dialog --backtitle "Giocoso Database Backup" --title " Database Backup " --msgbox "\nDatabase backup failed: no MariaDB dump program could be found.\n" 15 70
+	 dialog --backtitle "Giocoso Database Backup" --title " Database Backup " --msgbox "\nDatabase backup failed: no MariaDB dump program could be found.\n" 10 70
     else 
-	 dialog --backtitle "Giocoso Database Backup" --title " Database Backup " --msgbox "\nDatabase backup failed for some reason.\n" 15 70
+	 dialog --backtitle "Giocoso Database Backup" --title " Database Backup " --msgbox "\nDatabase backup failed for some reason.\n" 10 70
     fi
   fi
   
