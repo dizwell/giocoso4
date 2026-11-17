@@ -77,12 +77,20 @@ TMPFILE=$(mktemp)
 mariadb -h "$SOURCEHOST" -P "$SOURCEPORT" -u "$SOURCEUSR" -p"$SOURCEPWD" "$SOURCEDB" \
   --default-character-set=utf8mb4 --batch --skip-column-names \
   -e "SELECT playhashvalue, rechashvalue, playdate, foldername, composer, composition, genre, performer, duration, devicename, os_type FROM global_plays" \
-  > "$TMPFILE"
+  > "$TMPFILE" 2>/dev/null
+EXPORTRC=$?
 
-mariadb -h "$DESTHOST" -P "$DESTPORT" -u "$DESTUSR" -p"$DESTPWD" "$DESTDB" \
-  --default-character-set=utf8mb4 --local-infile=1 \
-  -e "LOAD DATA LOCAL INFILE '$TMPFILE' IGNORE INTO TABLE global_plays (playhashvalue, @rechashvalue, @playdate, @foldername, @composer, @composition, @genre, @performer, @duration, @devicename, @os_type) SET rechashvalue=NULLIF(@rechashvalue,'NULL'), playdate=NULLIF(@playdate,'NULL'), foldername=NULLIF(@foldername,'NULL'), composer=NULLIF(@composer,'NULL'), composition=NULLIF(@composition,'NULL'), genre=NULLIF(@genre,'NULL'), performer=NULLIF(@performer,'NULL'), duration=NULLIF(@duration,'NULL'), devicename=NULLIF(@devicename,'NULL'), os_type=NULLIF(@os_type,'NULL')"
-
+ROWS=$(wc -l < "$TMPFILE" | tr -d ' ')
+if [[ $EXPORTRC -ne 0 ]]; then
+  MOVE_PLAYS="FAILED"
+elif [[ $ROWS -eq 0 ]]; then
+  MOVE_PLAYS="none to copy"
+else
+  mariadb -h "$DESTHOST" -P "$DESTPORT" -u "$DESTUSR" -p"$DESTPWD" "$DESTDB" \
+    --default-character-set=utf8mb4 --local-infile=1 \
+    -e "LOAD DATA LOCAL INFILE '$TMPFILE' IGNORE INTO TABLE global_plays (playhashvalue, @rechashvalue, @playdate, @foldername, @composer, @composition, @genre, @performer, @duration, @devicename, @os_type) SET rechashvalue=NULLIF(@rechashvalue,'NULL'), playdate=NULLIF(@playdate,'NULL'), foldername=NULLIF(@foldername,'NULL'), composer=NULLIF(@composer,'NULL'), composition=NULLIF(@composition,'NULL'), genre=NULLIF(@genre,'NULL'), performer=NULLIF(@performer,'NULL'), duration=NULLIF(@duration,'NULL'), devicename=NULLIF(@devicename,'NULL'), os_type=NULLIF(@os_type,'NULL')" 2>/dev/null
+  if [[ $? -eq 0 ]]; then MOVE_PLAYS="$ROWS copied"; else MOVE_PLAYS="FAILED"; fi
+fi
 rm -f "$TMPFILE"
 }
 
@@ -95,11 +103,19 @@ mariadb -h "$SOURCEHOST" -P "$SOURCEPORT" -u "$SOURCEUSR" -p"$SOURCEPWD" "$SOURC
   --default-character-set=utf8mb4 --batch --skip-column-names \
   -e "SELECT rechashvalue, notes FROM global_notes WHERE notes IS NOT NULL AND notes <> ''" \
   > "$TMPFILE" 2>/dev/null
+EXPORTRC=$?
 
-mariadb -h "$DESTHOST" -P "$DESTPORT" -u "$DESTUSR" -p"$DESTPWD" "$DESTDB" \
-  --default-character-set=utf8mb4 --local-infile=1 \
-  -e "LOAD DATA LOCAL INFILE '$TMPFILE' IGNORE INTO TABLE global_notes (rechashvalue, notes)" 2>/dev/null
-
+ROWS=$(wc -l < "$TMPFILE" | tr -d ' ')
+if [[ $EXPORTRC -ne 0 ]]; then
+  MOVE_NOTES="FAILED"
+elif [[ $ROWS -eq 0 ]]; then
+  MOVE_NOTES="none to copy"
+else
+  mariadb -h "$DESTHOST" -P "$DESTPORT" -u "$DESTUSR" -p"$DESTPWD" "$DESTDB" \
+    --default-character-set=utf8mb4 --local-infile=1 \
+    -e "LOAD DATA LOCAL INFILE '$TMPFILE' IGNORE INTO TABLE global_notes (rechashvalue, notes)" 2>/dev/null
+  if [[ $? -eq 0 ]]; then MOVE_NOTES="$ROWS copied"; else MOVE_NOTES="FAILED"; fi
+fi
 rm -f "$TMPFILE"
 }
 
@@ -111,11 +127,19 @@ mariadb -h "$SOURCEHOST" -P "$SOURCEPORT" -u "$SOURCEUSR" -p"$SOURCEPWD" "$SOURC
   --default-character-set=utf8mb4 --batch --skip-column-names \
   -e "SELECT query_name, query_text FROM stored_queries" \
   > "$TMPFILE" 2>/dev/null
+EXPORTRC=$?
 
-mariadb -h "$DESTHOST" -P "$DESTPORT" -u "$DESTUSR" -p"$DESTPWD" "$DESTDB" \
-  --default-character-set=utf8mb4 --local-infile=1 \
-  -e "LOAD DATA LOCAL INFILE '$TMPFILE' IGNORE INTO TABLE stored_queries (query_name, @query_text) SET query_text=NULLIF(@query_text,'NULL')" 2>/dev/null
-
+ROWS=$(wc -l < "$TMPFILE" | tr -d ' ')
+if [[ $EXPORTRC -ne 0 ]]; then
+  MOVE_SQL="FAILED"
+elif [[ $ROWS -eq 0 ]]; then
+  MOVE_SQL="none to copy"
+else
+  mariadb -h "$DESTHOST" -P "$DESTPORT" -u "$DESTUSR" -p"$DESTPWD" "$DESTDB" \
+    --default-character-set=utf8mb4 --local-infile=1 \
+    -e "LOAD DATA LOCAL INFILE '$TMPFILE' IGNORE INTO TABLE stored_queries (query_name, @query_text) SET query_text=NULLIF(@query_text,'NULL')" 2>/dev/null
+  if [[ $? -eq 0 ]]; then MOVE_SQL="$ROWS copied"; else MOVE_SQL="FAILED"; fi
+fi
 rm -f "$TMPFILE"
 }
 
@@ -131,14 +155,21 @@ mariadb -h "$SOURCEHOST" -P "$SOURCEPORT" -u "$SOURCEUSR" -p"$SOURCEPWD" "$SOURC
   --default-character-set=utf8mb4 --batch --skip-column-names \
   -e "SELECT phrase, voice, phoneme FROM user_phonemes WHERE voice IS NOT NULL OR phoneme IS NOT NULL" \
   > "$TMPFILE" 2>/dev/null
+EXPORTRC=$?
 
-mariadb -h "$DESTHOST" -P "$DESTPORT" -u "$DESTUSR" -p"$DESTPWD" "$DESTDB" \
-  --default-character-set=utf8mb4 --local-infile=1 \
-  -e "CREATE TEMPORARY TABLE moving_phonemes LIKE user_phonemes;
-      LOAD DATA LOCAL INFILE '$TMPFILE' INTO TABLE moving_phonemes (phrase, @voice, @phoneme) SET voice=NULLIF(@voice,'NULL'), phoneme=NULLIF(@phoneme,'NULL');
-      UPDATE user_phonemes u JOIN moving_phonemes m ON u.phrase = m.phrase SET u.voice = m.voice, u.phoneme = m.phoneme WHERE u.voice IS NULL AND u.phoneme IS NULL;
-      INSERT IGNORE INTO user_phonemes (phrase, voice, phoneme) SELECT phrase, voice, phoneme FROM moving_phonemes;" 2>/dev/null
-
+ROWS=$(wc -l < "$TMPFILE" | tr -d ' ')
+# A Giocoso 3 source has no user_phonemes table, so a failed export here means nothing to copy, not a failure
+if [[ $ROWS -eq 0 ]]; then
+  MOVE_PHON="none to copy"
+else
+  mariadb -h "$DESTHOST" -P "$DESTPORT" -u "$DESTUSR" -p"$DESTPWD" "$DESTDB" \
+    --default-character-set=utf8mb4 --local-infile=1 \
+    -e "CREATE TEMPORARY TABLE moving_phonemes LIKE user_phonemes;
+        LOAD DATA LOCAL INFILE '$TMPFILE' INTO TABLE moving_phonemes (phrase, @voice, @phoneme) SET voice=NULLIF(@voice,'NULL'), phoneme=NULLIF(@phoneme,'NULL');
+        UPDATE user_phonemes u JOIN moving_phonemes m ON u.phrase = m.phrase SET u.voice = m.voice, u.phoneme = m.phoneme WHERE u.voice IS NULL AND u.phoneme IS NULL;
+        INSERT IGNORE INTO user_phonemes (phrase, voice, phoneme) SELECT phrase, voice, phoneme FROM moving_phonemes;" 2>/dev/null
+  if [[ $? -eq 0 ]]; then MOVE_PHON="$ROWS copied"; else MOVE_PHON="FAILED"; fi
+fi
 rm -f "$TMPFILE"
 }
 
@@ -228,7 +259,13 @@ if [[ $1 == "move" ]]; then
   fi
 
   if [[ $MOVEOK -eq 1 ]]; then
-    dialog --backtitle "Giocoso Database Backup & Restore" --title " Database Import " --msgbox "\nData import between databases now complete.\n" 15 70
+    # Report each kind of data separately. Counts are rows offered: any the destination already had are skipped.
+    MOVEREPORT="\n  Plays:            $MOVE_PLAYS\n  Notes:            $MOVE_NOTES\n  Stored queries:   $MOVE_SQL\n  Pronunciations:   $MOVE_PHON\n"
+    if [[ "$MOVE_PLAYS$MOVE_NOTES$MOVE_SQL$MOVE_PHON" == *FAILED* ]]; then
+      dialog --backtitle "Giocoso Database Backup & Restore" --title " Database Import Incomplete! " --msgbox "\nNot everything could be copied between the databases:\n$MOVEREPORT\nCheck the destination database and try again." 16 70
+    else
+      dialog --backtitle "Giocoso Database Backup & Restore" --title " Database Import Complete " --msgbox "\nData import between databases now complete:\n$MOVEREPORT" 15 70
+    fi
   else
     dialog --backtitle "Giocoso Database Backup & Restore" --title " Database Import " --msgbox "\nData import between databases cancelled.\n" 15 70	
   fi
