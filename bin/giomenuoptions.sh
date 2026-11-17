@@ -130,7 +130,7 @@ FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" 2>/dev/null | $GREPPR
         option="$seq"
       fi
       case $option in
-      "" ) source "$CONFDIR/bin/giorefreshdb.sh"; gmenuoptions database;;
+      "" ) source "$CONFDIR/bin/giorefreshdb.sh" NODIR fast; gmenuoptions database;;      # Enter does what item 1 does, as on the other menus
       1 ) source "$CONFDIR/bin/giorefreshdb.sh" NODIR fast; gmenuoptions database;;
       2 ) source "$CONFDIR/bin/giorefreshdb.sh" NODIR full; gmenuoptions database;;
       3 ) source "$CONFDIR/bin/giobkpdb.sh" move; gmenuoptions database;;
