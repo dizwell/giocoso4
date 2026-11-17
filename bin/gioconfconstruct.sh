@@ -205,6 +205,10 @@ done
 # ====================================================================
 if [[ -f $CONFDIR/txt/giocoso.conf ]]; then
   cp "$CONFDIR/txt/giocoso.conf" "$CONFDIR/txt/giocoso.conf-$(date +%F-%T).bkp"
+  BKPS=("$CONFDIR/txt"/giocoso.conf-*.bkp)                                # Keep only the ten most recent backups: the names
+  if [[ ${#BKPS[@]} -gt 10 && -f ${BKPS[0]} ]]; then                         # carry the date and time, so name order is age order
+    rm -f "${BKPS[@]:0:${#BKPS[@]}-10}"
+  fi
 fi
 
 # Now write all the new parameter values to a new configuration file. The heredoc
