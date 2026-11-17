@@ -510,7 +510,7 @@ function backup_installation {
 # Nothing to back up on a first-ever install, so skip creating an empty backup folder
 if [[ ! -d "$NEWCONF" ]] && ! compgen -G "/usr/bin/giocoso*.sh" >/dev/null && ! compgen -G "/usr/local/bin/giocoso*.sh" >/dev/null; then return; fi
 tput clear; print_header
-tput cup 6 4; tput setaf $MAINTEXT; echo -n "Backing up your existing Giocoso program and settings..."
+tput cup 6 4; tput setaf $MAINTEXT; echo -n "Backing up your existing Giocoso 4 program and settings..."
 BACKUPDIR="$HOME/.local/share/giocoso-backup-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$BACKUPDIR"
 cp -r "$NEWCONF" "$BACKUPDIR" 2>/dev/null; BACKUPSUCCESS=$?
