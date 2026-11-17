@@ -24,5 +24,6 @@ if [[ $exitStatus -eq 0 && -n "$CONFPULSE" ]]; then
   if [[ -n "$SELECTED_IP" ]]; then
     $SEDPROG -i "s/^PULSESERVER=.*/PULSESERVER=$SELECTED_IP/" "$CONFDIR/txt/giocoso.conf" 2>/dev/null
     PULSESERVER="$SELECTED_IP"
+    source "$CONFDIR/bin/gioparse.sh"            # Re-read the configuration just changed, so every play from now on (Filter too) uses the new sink
   fi
 fi
