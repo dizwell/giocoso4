@@ -7,7 +7,7 @@
 ####################################################################
 # 1. Fetch data: identifier (Tag), ipaddress (Item), and Status (on/off)
 # The CASE statement checks if the database IP matches the current $PULSESERVER
-mapfile -t menu_options < <("${PROCONN[@]}" -N -B -e "select identifier, ipaddress, case when ipaddress = '$PULSESERVER' then 'on' else 'off' end from pulsesinks limit 10;" | $SEDPROG 's/\t/\n/g' 2>/dev/null)
+mapfile -t menu_options < <("${PROCONN[@]}" -N -B -e "select identifier, ipaddress, case when ipaddress = '$PULSESERVER' then 'on' else 'off' end from pulsesinks limit 5;" | $SEDPROG 's/\t/\n/g' 2>/dev/null)
 
 # 2. Display the Radiolist
 CONFPULSE=$(dialog --backtitle "Giocoso PulseAudio Redirector" \
