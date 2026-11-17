@@ -29,7 +29,7 @@ if [[ -f $CONFFILE ]]; then
   # Text Parameters (conf_text strips the surrounding double quotes, and copes with '=' inside a value)
   confdevice=$(conf_text DEVICE); if [[ -z $confdevice ]]; then confdevice='default'; fi
   confdurations=$(conf_text DURATIONS); if [[ -z $confdurations ]]; then confdurations=minutes; fi
-  confbackupdir=$(conf_text BACKUP_DIR); if [[ -z $confbackupdir ]]; then confbackupdir="$HOME/Desktop"; fi
+  confbackupdir=$(conf_text BACKUP_DIR); if [[ -z $confbackupdir ]]; then confbackupdir="$HOME"; fi
   confmysqlip=$(conf_text MYSQLIP); if [[ -z $confmysqlip ]]; then confmysqlip=127.0.0.1; fi
   confmysqlprt=$(conf_text MYSQLPRT); if [[ -z $confmysqlprt ]]; then confmysqlprt=3306; fi
   conffileprefix=$(conf_text FILEPREFIX)
@@ -101,9 +101,9 @@ else
 fi
 
 # Make sure the backup folder is set to something, and the something actually exists and it's something we can write to!
-if [[ -z $CONFBACKUPDIR ]]; then CONFBACKUPDIR="/tmp"; fi;
-if [[ ! -d $CONFBACKUPDIR ]]; then CONFBACKUPDIR="/tmp"; fi
-if [[ ! -w $CONFBACKUPDIR ]]; then CONFBACKUPDIR="/tmp"; fi
+if [[ -z $CONFBACKUPDIR ]]; then CONFBACKUPDIR="$HOME"; fi;
+if [[ ! -d $CONFBACKUPDIR ]]; then CONFBACKUPDIR="$HOME"; fi
+if [[ ! -w $CONFBACKUPDIR ]]; then CONFBACKUPDIR="$HOME"; fi
 	
 # Make sure CONFDIATHEME is one of standard, red, green, yellow or magenta. If not, it's standard
 if [[ ${CONFDIATHEME,,} =~ ^(standard|red|green|yellow|magenta)$ ]]; then
