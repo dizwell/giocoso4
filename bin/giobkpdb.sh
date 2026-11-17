@@ -24,11 +24,11 @@ function prompt_source {
 	  return 1
 	fi
 
-	SOURCEHOST=$(echo "$RESULT" | $SEDPROG -n '1p' 2>/dev/null)
-	SOURCEPORT=$(echo "$RESULT" | $SEDPROG -n '2p' 2>/dev/null)
-	SOURCEDB=$(echo "$RESULT" | $SEDPROG -n '3p' 2>/dev/null)
-	SOURCEUSR=$(echo "$RESULT" | $SEDPROG -n '4p' 2>/dev/null)
-	SOURCEPWD=$(echo "$RESULT" | $SEDPROG -n '5p' 2>/dev/null)
+	SOURCEHOST=$(echo "$RESULT" | $SEDPROG -n '1p' 2>/dev/null | $SEDPROG -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' 2>/dev/null)
+	SOURCEPORT=$(echo "$RESULT" | $SEDPROG -n '2p' 2>/dev/null | $SEDPROG -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' 2>/dev/null)
+	SOURCEDB=$(echo "$RESULT" | $SEDPROG -n '3p' 2>/dev/null | $SEDPROG -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' 2>/dev/null)
+	SOURCEUSR=$(echo "$RESULT" | $SEDPROG -n '4p' 2>/dev/null | $SEDPROG -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' 2>/dev/null)
+	SOURCEPWD=$(echo "$RESULT" | $SEDPROG -n '5p' 2>/dev/null | $SEDPROG -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' 2>/dev/null)
 	
 	if mariadb -h "$SOURCEHOST" -P "$SOURCEPORT" -u "$SOURCEUSR" -p"$SOURCEPWD" "$SOURCEDB" -e "SELECT 1" >/dev/null 2>&1; then
 	  GOODSOURCE=1
@@ -53,11 +53,11 @@ function prompt_dest {
 	  return 1
 	fi
 	
-    DESTHOST=$(echo "$RESULT" | $SEDPROG -n '1p' 2>/dev/null)
-    DESTPORT=$(echo "$RESULT" | $SEDPROG -n '2p' 2>/dev/null)
-    DESTDB=$(echo "$RESULT" | $SEDPROG -n '3p' 2>/dev/null)
-    DESTUSR=$(echo "$RESULT" | $SEDPROG -n '4p' 2>/dev/null)
-    DESTPWD=$(echo "$RESULT" | $SEDPROG -n '5p' 2>/dev/null)
+    DESTHOST=$(echo "$RESULT" | $SEDPROG -n '1p' 2>/dev/null | $SEDPROG -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' 2>/dev/null)
+    DESTPORT=$(echo "$RESULT" | $SEDPROG -n '2p' 2>/dev/null | $SEDPROG -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' 2>/dev/null)
+    DESTDB=$(echo "$RESULT" | $SEDPROG -n '3p' 2>/dev/null | $SEDPROG -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' 2>/dev/null)
+    DESTUSR=$(echo "$RESULT" | $SEDPROG -n '4p' 2>/dev/null | $SEDPROG -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' 2>/dev/null)
+    DESTPWD=$(echo "$RESULT" | $SEDPROG -n '5p' 2>/dev/null | $SEDPROG -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' 2>/dev/null)
 	
 	if mariadb -h "$DESTHOST" -P "$DESTPORT" -u "$DESTUSR" -p"$DESTPWD" "$DESTDB" -e "SELECT 1" >/dev/null 2>&1; then
 	  GOODDEST=1
