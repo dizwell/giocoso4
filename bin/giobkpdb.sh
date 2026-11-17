@@ -262,7 +262,7 @@ if [[ $1 == "move" ]]; then
     # Report each kind of data separately. Counts are rows offered: any the destination already had are skipped.
     MOVEREPORT="\n  Plays:            $MOVE_PLAYS\n  Notes:            $MOVE_NOTES\n  Stored queries:   $MOVE_SQL\n  Pronunciations:   $MOVE_PHON\n"
     if [[ "$MOVE_PLAYS$MOVE_NOTES$MOVE_SQL$MOVE_PHON" == *FAILED* ]]; then
-      dialog --backtitle "Giocoso Database Backup & Restore" --title " Database Import Incomplete! " --msgbox "\nNot everything could be copied between the databases:\n$MOVEREPORT\nCheck the destination database and try again." 16 70
+      dialog --backtitle "Giocoso Database Backup & Restore" --title " Database Import Incomplete! " --msgbox "\nNot everything could be copied between the databases:\n$MOVEREPORT\nSomething is wrong with your destination and/or source databases. Check both, then try again." 16 70
     else
       dialog --backtitle "Giocoso Database Backup & Restore" --title " Database Import Complete " --msgbox "\nData import between databases now complete:\n$MOVEREPORT" 15 70
     fi
