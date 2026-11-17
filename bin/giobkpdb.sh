@@ -200,10 +200,18 @@ DBLIST=()
 for FILE in "$BACKUP_DIR"/*.sql; do
   [[ -f "$FILE" ]] && DBLIST+=("$(basename "$FILE")" "$(basename "$FILE")" off)
 done
+if [[ ${#DBLIST[@]} -eq 0 ]]; then                    # An empty list can't be drawn: say why there's nothing to choose
+  dialog --backtitle "Giocoso Database Restore" --title " No Backups Found " --msgbox "\nNo database backups were found in your backup folder:\n\n    $BACKUP_DIR\n\nPress OK to return to the menu." 12 70
+  return 1
+fi
 RESULT=$(dialog --no-tags --backtitle "Giocoso Database Backup & Restore" --title " Select Database Backup " --radiolist "\nPlease select the backup you wish to restore:\n" 15 80 8 "${DBLIST[@]}" 2>&1 >/dev/tty)
 
-if [[ $? -eq 0 ]]; then
+if [[ $? -eq 0 && -n $RESULT ]]; then
   RESTOREFILE="$BACKUP_DIR/$RESULT"
+  # A restore replaces the database's contents: say exactly what is about to happen, and default to No
+  if ! dialog --backtitle "Giocoso Database Restore" --title " Confirm Restore " --no-mouse --defaultno --yesno "\nRestoring this backup:\n\n    $RESULT\n\nwill replace everything in the '$DESTDB' database on $DESTHOST with the backup's contents. Anything recorded since the backup was taken (plays, notes, stored queries, pronunciations) will be lost.\n\nAre you sure you want to restore it?" 16 76; then
+    return 1
+  fi
   mariadb -h "$DESTHOST" -P "$DESTPORT" -u "$DESTUSR" -p"$DESTPWD" "$DESTDB" < "$RESTOREFILE"
   if [[ $? -eq 0 ]]; then IMPORTSUCCESS=1; fi
 else
