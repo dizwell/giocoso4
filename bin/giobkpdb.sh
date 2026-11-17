@@ -209,7 +209,7 @@ RESULT=$(dialog --no-tags --backtitle "Giocoso Database Backup & Restore" --titl
 if [[ $? -eq 0 && -n $RESULT ]]; then
   RESTOREFILE="$BACKUP_DIR/$RESULT"
   # A restore replaces the database's contents: say exactly what is about to happen, and default to No
-  if ! dialog --backtitle "Giocoso Database Restore" --title " Confirm Restore " --no-mouse --defaultno --yesno "\nRestoring this backup:\n\n    $RESULT\n\nwill replace everything in the '$DESTDB' database on $DESTHOST with the backup's contents. Anything recorded since the backup was taken (plays, notes, stored queries, pronunciations) will be lost.\n\nAre you sure you want to restore it?" 16 76; then
+  if ! dialog --backtitle "Giocoso Database Restore" --title " Confirm Restore " --no-mouse --defaultno --yesno "\nRestoring this backup:\n\n    $RESULT\n\n...will replace everything in the '$DESTDB' database on $DESTHOST with the backup contents. Anything recorded since the backup was taken (plays, notes, stored queries, pronunciations) will be lost.\n\nAre you sure you want to restore it?" 16 76; then
     return 1
   fi
   mariadb -h "$DESTHOST" -P "$DESTPORT" -u "$DESTUSR" -p"$DESTPWD" "$DESTDB" < "$RESTOREFILE"
