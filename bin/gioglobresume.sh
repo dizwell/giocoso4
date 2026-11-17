@@ -224,7 +224,9 @@ if [[ $($METAFLAC --show-md5sum "$f" 2>&1 | $GREPPROG -i error | wc -l) -eq 0 ]]
   $MAGICK -size "$ARTSIZE" canvas:transparent PNG32:"$CONFDIR/art/albumart.jpg" 2>/dev/null
   
   if [[ ! -f $CONFDIR/txt/terminate.txt && ! -f $CONFDIR/txt/skip.txt ]]; then
-    if [[ $PLAY_ELAPSEDTIME -gt 15 ]]; then                                       # If ffmpeg only played for a few seconds, that's not a play worth recording.
+    # A resumed play that ends naturally has been heard from its start (before the pause) to its end, so the
+    # 15-second test counts the whole listening time: where this resume started, plus the seconds played since.
+    if [[ $(( ${PLAY_OFFSET:-0} + PLAY_ELAPSEDTIME )) -gt 15 ]]; then
       record_resumed_play
     fi
   fi
