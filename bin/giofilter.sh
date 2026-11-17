@@ -189,7 +189,7 @@ if [[ -z $NOTRECENTPLY ]]; then
 elif [[ $NOTRECENTPLY =~ $NUM ]]; then
   NOTRECENTPLAYSTMT="SELECT DIRNAME FROM (
     SELECT 
-        CONCAT('"$FILEPREFIX"', filesuffix) AS DIRNAME,
+        concat('"$FILEPREFIX"',filesuffix) AS DIRNAME,          # Written exactly as elsewhere, so a Stored Query gets the placeholder, not the real path
         ROW_NUMBER() OVER (PARTITION BY composer ORDER BY RAND()) AS row_num
     FROM global_recordings 
     WHERE composer IN (
@@ -209,7 +209,7 @@ fi
 if [[ -z $NOTRECENTWRK ]]; then
   NOTRECENTWORKSTMT="1=1"
 elif [[ $NOTRECENTWRK =~ $NUM ]]; then
-  NOTRECENTWORKSTMT="select CONCAT('"$FILEPREFIX"', filesuffix) AS DIRNAME
+  NOTRECENTWORKSTMT="select concat('"$FILEPREFIX"',filesuffix) AS DIRNAME
   from global_recordings gr
   join (
     select composer, composition
