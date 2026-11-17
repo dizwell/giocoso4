@@ -506,11 +506,11 @@ fi
 dialog --stdout --backtitle "Giocoso Software Install" --title " Software installation status " --msgbox "$DIALOGTEXT" 18 80
 }
 
-function backup_database {
+function backup_installation {
 # Nothing to back up on a first-ever install, so skip creating an empty backup folder
 if [[ ! -d "$NEWCONF" ]] && ! compgen -G "/usr/bin/giocoso*.sh" >/dev/null && ! compgen -G "/usr/local/bin/giocoso*.sh" >/dev/null; then return; fi
 tput clear; print_header
-tput cup 6 4; tput setaf $MAINTEXT; echo -n "Backing up prior version's program & database."
+tput cup 6 4; tput setaf $MAINTEXT; echo -n "Backing up your existing Giocoso program and settings..."
 BACKUPDIR="$HOME/.local/share/giocoso-backup-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$BACKUPDIR"
 cp -r "$NEWCONF" "$BACKUPDIR" 2>/dev/null; BACKUPSUCCESS=$?
@@ -555,7 +555,7 @@ if [[ "$response" == [Yy]* ]]; then
 
   # 2. Backup if appropriate
   # -----------------------------------------------------
-  backup_database
+  backup_installation
 
   # 3. Make new version directory structure if needed
   # -----------------------------------------------------
