@@ -3,8 +3,8 @@
 #
 # giorptadvsql: routine for displaying a form into which
 # a SQL statement can be typed, for reporting purposes.
-# Submitted SQL is cleansed of 'drop', 'create', 'delete' and 
-# 'update' keywords along with semi-colons.
+# Submitted SQL runs as typed, apart from semicolons and backslashes,
+# and only if it starts with SELECT or WITH.
 #
 ####################################################################
 RETURNTOMENU=0
@@ -81,17 +81,20 @@ while [[ $RETURNTOMENU -ne 1 ]]; do
   QUERY_STRING=$(<"$FILENAME")
   SQLTXT="${QUERY_STRING//$'\n'/ }"
   
-  # Sanitation (Simple string removal)
-  # makes the string search case-insensitive and removes naughty DDL and DML commands
-  # Note this is not robust: no-one using Giocoso should imagine the platform is in any way secure.
-  # This just stops little accidents!
-  shopt -s nocasematch 
-  SQLTXT="${SQLTXT//delete/}"
-  SQLTXT="${SQLTXT//update/}"
-  SQLTXT="${SQLTXT//drop/}"
-  SQLTXT="${SQLTXT//create/}"
-  SQLTXT="${SQLTXT//;/}"
-  shopt -u nocasematch
+  # The query runs as typed, apart from semicolons and backslashes (as G33 for Advanced SQL play): with no semicolons
+  # and none of the mariadb client's backslash commands (\g and the rest), only one statement can ever run
+  SQLTXT="${SQLTXT//;/}"; SQLTXT="${SQLTXT//\\/}"
+
+  # ...and that one statement must be a report: its first word (after any leading spaces or brackets) must be SELECT
+  # or WITH, so nothing typed here can change the database
+  if [[ $RETURNTOMENU -ne 1 ]]; then
+    FIRSTWORD="${SQLTXT#"${SQLTXT%%[![:space:](]*}"}"; FIRSTWORD="${FIRSTWORD%%[[:space:](]*}"; FIRSTWORD="${FIRSTWORD^^}"
+    if [[ -n $SQLTXT && $FIRSTWORD != "SELECT" && $FIRSTWORD != "WITH" ]]; then
+      printf '%s\n' "$QUERY_STRING" > "$CONFDIR/txt/advsqlreport.txt"       # Show the query again, to be corrected
+      dialog --backtitle "Giocoso Advanced SQL Reporting" --title " Not a Report Query " --msgbox "\nOnly queries that start with SELECT or WITH can be run here, so nothing typed here can change the database.\n\nClick OK to return to your query." 10 80
+      continue
+    fi
+  fi
   
   DISPLAYTXT=${SQLTXT//&/\&amp;}
   DISPLAYTXT=${DISPLAYTXT//</\&lt;}
