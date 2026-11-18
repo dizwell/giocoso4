@@ -193,22 +193,39 @@ for f in "${newflacfolders[@]}"; do
 done
 }
 
+function thousands {
+# A whole number with thousands separators: 17597 becomes 17,597 (as Niente)
+local NUM="$1" OUT=""
+while (( ${#NUM} > 3 )); do OUT=",${NUM: -3}$OUT"; NUM="${NUM:0:${#NUM}-3}"; done
+printf '%s' "$NUM$OUT"
+}
+
+function check_data_loss {
+# One rule for both refresh types (as Niente): if more than a fifth of the database's recordings weren't found on
+# disk (an unmounted or partly available share, say), the refresh is suspect. From the menu, warn and ask (default No);
+# unattended, refuse. Either way, a refresh that doesn't go ahead changes nothing. An empty database can never trip it.
+# Returns 0 to go ahead, 1 to stop.
+DBCOUNT=$(($(wc -l < "$CONFDIR/txt/dbops/db_flacs.txt" 2>/dev/null || echo 0)))
+DEADCOUNT=$(($(wc -l < "$CONFDIR/txt/dbops/dead_flacs.txt" 2>/dev/null || echo 0)))
+if (( DBCOUNT == 0 || DEADCOUNT * 5 <= DBCOUNT )); then return 0; fi
+if [[ $PROMPTS == "on" ]]; then
+  if dialog --stdout --backtitle "Giocoso Database Refresh" --title " Data Loss Warning! " --no-mouse --defaultno --yesno "\n$(thousands $DEADCOUNT) of the $(thousands $DBCOUNT) recordings in the database could not be found in your music folder. Continuing would remove them from the database. Is your music folder fully available?\n\nAre you sure you want to continue?" 14 80; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') $DEADCOUNT of $DBCOUNT recordings were not found in the music folder: refresh continued at the user's request." >> "$CONFDIR/txt/dbops/dbrefresh.log"
+    return 0
+  fi
+  dialog --stdout --backtitle "Giocoso Database Refresh" --title " Refresh Cancelled! " --msgbox "\nThe database refresh has been cancelled.\n\nNothing about your existing Giocoso database has been altered." 12 80
+  echo "$(date '+%Y-%m-%d %H:%M:%S') Refresh cancelled at the data-loss warning: $DEADCOUNT of $DBCOUNT recordings were not found in the music folder, so nothing has been changed." >> "$CONFDIR/txt/dbops/dbrefresh.log"
+else
+  echo "$(date '+%Y-%m-%d %H:%M:%S') Unattended refresh refused: $DEADCOUNT of $DBCOUNT recordings in the database were not found in the music folder (more than a fifth), so nothing has been changed. If they really have gone, run a refresh from the menu." >> "$CONFDIR/txt/dbops/dbrefresh.log"
+fi
+rm -f "$CONFDIR/txt/dbops/"{filesystem,db,new,dead,analysed}_flacs.txt >/dev/null 2>&1
+tput cvvis
+return 1
+}
+
 function refresh_database {
 if [[ $REFRESH_TYPE == "full" ]]; then
-  # A full refresh empties global_recordings and rebuilds it from the scan. If the scan found no FLACs at all, or fewer
-  # than half as many recordings as the database already holds, the music is probably not available (an unmounted share,
-  # say): change nothing, and say so.
-  FSCOUNT=$(($(wc -l < "$CONFDIR/txt/dbops/filesystem_flacs.txt" 2>/dev/null || echo 0)))
-  DBCOUNT=$("${PROCONN[@]}" -N -B -e "select count(*) from global_recordings" 2>/dev/null); DBCOUNT=$((10#${DBCOUNT:-0}))
-  if [[ $FSCOUNT -eq 0 || $((FSCOUNT * 2)) -lt $DBCOUNT ]]; then
-    echo "$(date '+%Y-%m-%d %H:%M:%S') Full refresh found $FSCOUNT recording folders, but the database holds $DBCOUNT: too few to be safe, so the database has not been changed. Check that your music folder is available." >> "$CONFDIR/txt/dbops/dbrefresh.log"
-    if [[ $MUSIC_FOLDER == "NODIR" ]]; then                             # Started from the menu: say so on screen as well
-      dialog --stdout --backtitle "Giocoso Database Refresh" --title " Database Not Changed " --msgbox "\nThe full refresh found only $FSCOUNT recording folders, but the database currently holds $DBCOUNT. That suggests your music folder or share is not fully available, so the database has been left exactly as it was.\n\nCheck the music folder, then run the full refresh again." 14 80
-    fi
-    rm -f "$CONFDIR/txt/dbops/"{filesystem,db,new,dead,analysed}_flacs.txt >/dev/null 2>&1
-    tput cvvis
-    return
-  fi
+  # A full refresh empties global_recordings and rebuilds it from the scan (check_data_loss has already run)
   "${PROCONN[@]}" -N -B -e "delete from global_recordings" 2>/dev/null
 fi
 
@@ -246,18 +263,7 @@ tput cvvis
 }
 
 function delete_obsolete {
-# If there is a file of FLACs to be deleted, then do that now, too. But if the scan found no FLACs at all, or more than
-# 50 recordings appear to have gone, something is probably wrong (a music share not mounted, say): delete nothing, and
-# note it in the log. If that many recordings really have been removed, a full refresh will clear them out.
-FSCOUNT=$(($(wc -l < "$CONFDIR/txt/dbops/filesystem_flacs.txt" 2>/dev/null || echo 0)))
-DEADCOUNT=$(($(wc -l < "$CONFDIR/txt/dbops/dead_flacs.txt" 2>/dev/null || echo 0)))
-if [[ $FSCOUNT -eq 0 || $DEADCOUNT -gt 50 ]]; then
-  echo "$(date '+%Y-%m-%d %H:%M:%S') $DEADCOUNT recordings appear to be missing from disk ($FSCOUNT folders found): too many to be safe, so nothing has been deleted. If they really have gone, run a full refresh." >> "$CONFDIR/txt/dbops/dbrefresh.log"
-  if [[ $PROMPTS == "on" ]]; then                                     # Interactive refreshes say so on screen as well
-    dialog --stdout --backtitle "Giocoso Database Refresh" --title " Nothing Removed From the Database " --msgbox "\n$DEADCOUNT recordings in the database could not be found on disk. That is too many to be safe (is your music folder or share available?), so none of them has been removed.\n\nIf they really have gone, run a full refresh instead." 14 80
-  fi
-  return
-fi
+# If there is a file of FLACs to be deleted, then do that now, too (check_data_loss has already run)
 if [[ -f $CONFDIR/txt/dbops/dead_flacs.txt ]]; then
   while IFS= read -r FULLPATH; do
     FILESUFFIX="${FULLPATH#$FILEPREFIX}"
@@ -298,6 +304,7 @@ rm -f "$CONFDIR/txt/dbops/analysed_flacs.txt" >/dev/null 2>&1
 
 MUSIC_FOLDER="$1"  
 REFRESH_TYPE="$2"
+REFRESHSTOPPED=0
 
 if [[ $MUSIC_FOLDER == "NODIR" ]]; then
   PROMPTS=on
@@ -332,22 +339,34 @@ if [[ $GOODMUSIC -eq 1 ]]; then
     get_fs_flacs
 	get_db_flacs
     compute_diffs
-	scan_flacs
-    delete_obsolete                                                   # Before refresh_database, which removes the working files it reads
-    refresh_database
+    if check_data_loss; then                                          # Before any tags are read: a suspect refresh changes nothing
+	  scan_flacs
+      delete_obsolete                                                 # Before refresh_database, which removes the working files it reads
+      refresh_database
+    else
+      REFRESHSTOPPED=1
+    fi
   elif [[ $REFRESH_TYPE == "full" ]]; then
   	printf '=%.0s' {1..80} > "$CONFDIR/txt/dbops/dbrefresh.log"  # Start a new log
   	printf '\n' >> "$CONFDIR/txt/dbops/dbrefresh.log"
   	echo "$(date '+%Y-%m-%d %H:%M:%S') Starting a $REFRESH_TYPE database refresh" >> "$CONFDIR/txt/dbops/dbrefresh.log"
     get_fs_flacs
-	cat "$CONFDIR/txt/dbops/filesystem_flacs.txt" > "$CONFDIR/txt/dbops/new_flacs.txt" & spinner $!
-	scan_flacs
-	refresh_database
+	get_db_flacs
+    compute_diffs
+    if check_data_loss; then                                          # Before any tags are read: a suspect refresh changes nothing
+	  cat "$CONFDIR/txt/dbops/filesystem_flacs.txt" > "$CONFDIR/txt/dbops/new_flacs.txt" & spinner $!
+	  scan_flacs
+	  refresh_database
+    else
+      REFRESHSTOPPED=1
+    fi
   fi
   
   clear_tracks
 
-  if [[ $PROMPTS == "on" ]]; then 
+  if [[ $REFRESHSTOPPED -eq 1 ]]; then
+    :                                                                 # check_data_loss has already said why (on screen and in the log)
+  elif [[ $PROMPTS == "on" ]]; then 
     dialog --stdout --backtitle "Giocoso Database Refresh" --msgbox "Database refresh complete. Press OK to return to the main menu." 8 80
 	tput cvvis
   else
