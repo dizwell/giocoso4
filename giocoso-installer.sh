@@ -358,24 +358,11 @@ fi
 # Create a desktop launcher for Linux
 if ! [[ $OS == "DARWIN" ]]; then
   if [[ ! -d "$HOME/.local/share/applications" ]]; then mkdir -p "$HOME/.local/share/applications/"; fi
-  if [[ ! -f "$HOME/.local/share/applications/giocoso.desktop" ]]; then
-    downloaded=0
-    for attempt in {1..5}; do
-      if wget -q --tries=1 "$REMOTESOURCE/giocoso.desktop" -O "$HOME/.local/share/applications/giocoso.desktop" && [[ -s "$HOME/.local/share/applications/giocoso.desktop" ]]; then
-        downloaded=1
-        break
-      fi
-      rm -f "$HOME/.local/share/applications/giocoso.desktop"
-      sleep 1
-    done
-    if [[ $downloaded -eq 0 ]]; then
-      dialog --title " Download Failed " --msgbox "A Giocoso component could not be downloaded after five attempts.\n\nInstallation aborted." 10 70
-      exit 1
-    fi
-    sed -i "s|xxxxxxxx|$USERNAME|" "$HOME/.local/share/applications/giocoso.desktop"
-    chmod +x "$HOME/.local/share/applications/giocoso.desktop"
-    ln -s "$HOME/.local/share/applications/giocoso.desktop" "$HOME/Desktop" 2>/dev/null
-  fi
+  # Always replaced (as Niente and Semplice do), so an existing install picks up any change to the launcher
+  fetch_file "$REMOTESOURCE/giocoso.desktop" "$HOME/.local/share/applications/giocoso.desktop"
+  sed -i "s|xxxxxxxx|$USERNAME|" "$HOME/.local/share/applications/giocoso.desktop"
+  chmod +x "$HOME/.local/share/applications/giocoso.desktop"
+  ln -s "$HOME/.local/share/applications/giocoso.desktop" "$HOME/Desktop" 2>/dev/null
   
 # And now do one for macOS
 else
