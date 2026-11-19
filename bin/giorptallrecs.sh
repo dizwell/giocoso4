@@ -37,7 +37,7 @@ SQLSTMT="select composer as 'Composer', composition as 'Composition', performer 
   .footer { font-family: serif; font-size: 12px; color: #555; margin-top: 10px; }
 </style>
 <div style="display: flex; align-items: center; border-bottom: 1px solid #ccc; margin-bottom: 20px;">
-   <a href="https://bbritten.com"><img src="file://$CONFDIR/art/giocosoico.png" style="width:80px; height:80px; margin-right:20px;"></a>
+   <a href="https://bbritten.com" target="_blank"><img src="file://$CONFDIR/art/giocosoico.png" style="width:80px; height:80px; margin-right:20px;"></a>
   <h1 style="margin: 0; padding-bottom: 0px;">$REPORT_TITLE</h1>
 </div>
 <div style="clear:both;"></div>
