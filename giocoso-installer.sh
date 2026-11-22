@@ -540,6 +540,22 @@ if [[ "$response" == [Yy]* ]]; then
     exit_program
   fi
 
+  # 1a. Is this a supported system? The software check decides (one list of distributions, in one place), and it
+  # does so now, before anything is backed up, downloaded or changed
+  # -----------------------------------------------------
+  OSCHECKTMP="/tmp/giooscheck-$$.sh"
+  if fetch_file "$REMOTESOURCE/bin/giooscheck.sh" "$OSCHECKTMP" && [[ $(head -c2 "$OSCHECKTMP") == '#!' ]]; then
+    if ! ( source "$OSCHECKTMP" detect ) >/dev/null 2>&1; then
+      rm -f "$OSCHECKTMP"
+      tput clear; print_header
+      tput cup 6 4; tput setaf $ALERT; echo -e "Sorry, but you are using an unsupported operating system. I cannot proceed, so quitting!" | fold -s -w 76 | sed '2,$s/^/    /'
+      tput cup 9 4; tput setaf $ALERT; read -n 1 -p "Quitting in the meantime. Press a key to exit."
+      tput reset; tput sgr0
+      exit_program
+    fi
+  fi
+  rm -f "$OSCHECKTMP"
+
   # 2. Backup if appropriate
   # -----------------------------------------------------
   backup_installation

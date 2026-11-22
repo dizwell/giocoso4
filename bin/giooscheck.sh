@@ -22,7 +22,7 @@ if [[ -z $LOGOZ ]]; then
 fi
 
 if [[ -z $1 ]]; then set -- "checkonly"; fi
-if [[ $1 == "install" ]]; then
+if [[ $1 == "install" || $1 == "detect" ]]; then     # The installer's early check works from the system (and -d) alone, as the install itself does
   CHECKONLY=0
 else
   CHECKONLY=1
@@ -451,6 +451,9 @@ if [[ -z $OSFAMILY ]]; then OSFAMILY="ELSE"; fi
 # Raspberry Pi is different from vanilla Debian, in how you determine the specifics
 # -----------------------------------------------------------------------------
 if [[ -f /etc/rpi-issue ]]; then OSFAMILY="RASPBIAN"; fi
+
+# The installer's early check ('detect'): just say whether this system is supported, and do nothing else
+if [[ $1 == "detect" ]]; then [[ $OSFAMILY != "ELSE" ]]; return; fi
 
 function wezterm_app_install {
 # MacPorts' WezTerm package needs the full Xcode application, not just the command-line tools, so on MacPorts Macs
@@ -1026,7 +1029,7 @@ case $OSFAMILY in
   ;;
   
   *)
-  echo "Sorry, but you are using an unsupported operating system. I cannot proceed, so quitting!"
+  tput setaf ${ALERT:-1}; echo ""; echo "    Sorry, but you are using an unsupported operating system. I cannot proceed, so quitting!"; tput sgr0
   exit 1
   ;;
 esac
