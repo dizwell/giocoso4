@@ -35,9 +35,9 @@ tput setaf $DRAWLINES; echo -e "┌───────────────
 │                                                                                                   │
 │                                                                                                   │
 └───────────────────────────────────────────────────────────────────────────────────────────────────┘"
-tput cup  1 4; tput setaf $LOGOZ; echo -e "♬♪ Giocoso Music Player Installer ♬♪"
-tput cup  2 4; tput setaf $LOGOZ; echo -e "Copyright © H. Rogers $COPYRIGHT"
-tput cup  3 4; tput setaf $LOGOZ; echo -e "Version $PROGVERSION"
+tput cup  1 4; tput setaf ${LOGOZ:-6}; echo -e "♬♪ Giocoso Music Player Installer ♬♪"
+tput cup  2 4; tput setaf ${LOGOZ:-6}; echo -e "Copyright © H. Rogers $COPYRIGHT"
+tput cup  3 4; tput setaf ${LOGOZ:-6}; echo -e "Version $PROGVERSION"
 }
 
 function check_updates {
@@ -51,11 +51,11 @@ if [[ $pending -gt 0 ]]; then
   # Default to 'q' if the user just presses Enter, or if they type 'q'/'Q'
   case "${choice:-q}" in
     [pP]* ) 
-	      echo "    Proceeding as requested. Hang on..."
+	      echo "    OK, proceeding as requested. Please bear with us for a few moments..."
           PROCEED=1
           ;;
         * ) 
-          echo "    Exiting script. Please update your system manually."
+          echo "    Exiting script at your request. Please update your system manually before trying again."
           reset
           rm -f "$INSTALLERFILE"
           exit 1
@@ -417,9 +417,10 @@ fi
 
 if [[ -z $GIODISTRO ]]; then
   if [[ -f /etc/os-release ]]; then
-    . /etc/os-release
-    OS=$NAME
-    THISVER=$VERSION
+    # Read only the name and version: sourcing the whole file would overwrite the program's own variables (its LOGO=
+    # line, on Ubuntu and Fedora, would replace the logo colour), as Niente does
+    OS=$(. /etc/os-release; echo "$NAME")
+    THISVER=$(. /etc/os-release; echo "$VERSION")
   else
     OS=$(uname -s)
     THISVER=$(uname -r)
