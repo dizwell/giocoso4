@@ -447,6 +447,16 @@ if [[ $OS == *"RHEL"* || $OS == *"RED HAT"* ]]; then OSFAMILY="RHEL"; fi
 if [[ $OS == *"FEDORA"* ]]; then OSFAMILY="FEDORA"; fi
 if [[ $OS == *"DEBIAN"* ]]; then OSFAMILY="DEBIAN"; fi
 if [[ $OS == *"UBUNTU"* ]]; then OSFAMILY="UBUNTU"; fi
+# A derivative that calls itself by its own name (Mint, Ultramarine...) still says what it is built on, closest parent
+# first, in os-release's ID_LIKE line: use the first Tier 1 family listed there. OS becomes that family, just as -d
+# would make it, so the family (not the derivative's name) is what gets saved in programvariables.txt
+if [[ -z $OSFAMILY && -z $GIODISTRO && -f /etc/os-release ]]; then
+  for PARENT in $(. /etc/os-release; echo "${ID_LIKE^^}"); do
+    case $PARENT in
+      ARCH|VOID|RHEL|FEDORA|DEBIAN|UBUNTU) OSFAMILY=$PARENT; OS=$PARENT; break ;;
+    esac
+  done
+fi
 if [[ -z $OSFAMILY ]]; then OSFAMILY="ELSE"; fi
 
 # Raspberry Pi is different from vanilla Debian, in how you determine the specifics
