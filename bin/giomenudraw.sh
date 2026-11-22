@@ -26,17 +26,17 @@ fi
 function sixel_logo {
 wordlogo
 logowidth="${LOGOSIZE%%x*}"
-tput cup 14 58; tput setaf $SPINNER; echo -en "♬♪ "; tput setaf $INFOTEXT; echo -en "The Classical Music Player"; tput setaf $SPINNER; echo -en " ♬♪"
+tput cup 14 60; tput setaf $SPINNER; echo -en "♬♪ "; tput setaf $INFOTEXT; echo -en "The Classical Music Player"; tput setaf $SPINNER; echo -en " ♬♪"
 tput cup 16 $LOGO_POSITION; "$SIXEL" -w $logowidth "$LOGO_PATH" 2>/dev/null
 }
 
 function wordlogo {
 tput setaf $LOGO
-tput cup 8 55;  echo "  ____  _"
-tput cup 9 55;  echo " / ___|(_) ___  ___  ___   ___   ___"
-tput cup 10 55; echo "| |  _ | |/ _ \/ __|/ _ \ / __| / _ \ "
-tput cup 11 55; echo "| |_| || | (_)| (__| (_) |\__ \| (4̲) |"
-tput cup 12 55; echo " \____||_|\___/\___|\___/ |___/ \___/"
+tput cup 8 57;  echo "  ____  _"
+tput cup 9 57;  echo " / ___|(_) ___  ___  ___   ___   ___"
+tput cup 10 57; echo "| |  _ | |/ _ \/ __|/ _ \ / __| / _ \ "
+tput cup 11 57; echo "| |_| || | (_)| (__| (_) |\__ \| (4̲) |"
+tput cup 12 57; echo " \____||_|\___/\___|\___/ |___/ \___/"
 }
 
 function short {
@@ -160,7 +160,7 @@ sixel_logo
 
 function main {
 DISPLAYDBS="${SOURCEDB^}"; DISPLAYDBS=${DISPLAYDBS:0:29}
-LOGO_POSITION=$((68 + $LOGOPOS ))
+LOGO_POSITION=$((70 + $LOGOPOS ))      # Centred in the right-hand panel at the default size (as Semplice and Niente)
 if [[ $1 == short ]]; then
   short
 elif  [[ $1 == playing ]]; then
