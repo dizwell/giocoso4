@@ -248,7 +248,7 @@ count=0
     echo $percent
     sleep 0.1
   done
-) | dialog --title " Installing Giocoso Binary Components " --gauge "\\n\\nNow downloading some external binaries Giocoso depends on: not long to wait now..." 12 70
+) | dialog --title " Installing Giocoso Executables " --gauge "\\n\\nDownloading the external programs Giocoso depends on: not long to wait now..." 12 70
 
 download_status=${PIPESTATUS[0]}
 if [[ $download_status -ne 0 ]]; then
@@ -280,7 +280,7 @@ count=0
     echo $percent
     sleep 0.1
   done
-) | dialog --title " Installing Giocoso Binary Components " --gauge "\\n\\nLast lot of files to download..." 12 70
+) | dialog --title " Installing Giocoso Configuration Files " --gauge "\\n\\nFinally, downloading ImageMagick's configuration files: it will all be over soon..." 12 70
 
 download_status=${PIPESTATUS[0]}
 if [[ $download_status -ne 0 ]]; then
@@ -439,6 +439,7 @@ fi
     
 # Confirmation when concluded
 dialog --title " Software Components Completed " --msgbox "\\n\\nAll Giocoso's components have now been installed successfully.\\n\\nPress OK to see an installation summary report." 12 70
+tput civis                       # No blinking cursor while the installation summary is being prepared
 }
 
 function verify_install {
