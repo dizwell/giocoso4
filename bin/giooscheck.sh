@@ -442,6 +442,7 @@ if [[ $OS == *"ARCH"* ]]; then OSFAMILY="ARCH"; fi
 if [[ $OS == *"VOID"* ]]; then OSFAMILY="VOID"; fi
 if [[ $OS == *"ALMA"* ]]; then OSFAMILY="RHEL"; fi
 if [[ $OS == *"ROCKY"* ]]; then OSFAMILY="RHEL"; fi
+if [[ $OS == *"RHEL"* || $OS == *"RED HAT"* ]]; then OSFAMILY="RHEL"; fi
 if [[ $OS == *"FEDORA"* ]]; then OSFAMILY="FEDORA"; fi
 if [[ $OS == *"DEBIAN"* ]]; then OSFAMILY="DEBIAN"; fi
 if [[ $OS == *"UBUNTU"* ]]; then OSFAMILY="UBUNTU"; fi
