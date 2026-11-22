@@ -157,7 +157,7 @@ tput setaf $DRAWLINES; echo -e "┌───────────────
 │                                                                                                   │
 │                                                                                                   │
 └───────────────────────────────────────────────────────────────────────────────────────────────────┘"
-tput cup  1 4; tput setaf $LOGO; echo "♬♪ Giocoso Music Player Installer ♬♪"
+tput cup  1 4; tput setaf $LOGO; echo "♬♪ Giocoso: The Classical Music Player ♬♪"
 tput cup  2 4; tput setaf $LOGO; echo "Copyright © H. Rogers $COPYRIGHT"
 tput cup  3 4; tput setaf $LOGO; echo "Version $PROGVERSION"
 # Once known (from -v, or from the stable/beta prompt), the release being installed shows flush right
