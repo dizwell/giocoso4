@@ -551,7 +551,7 @@ if [[ "$response" == [Yy]* ]]; then
       tput cup 6 4; tput setaf $ALERT; echo -e "Unfortunately, you are using an unsupported operating system, so the installation cannot proceed. If your operating system is based on one of the Tier 1 operating systems, re-download the installer and try the installation again using the -d switch to specify which parent distro your own distro is based on." | fold -s -w 76 | sed '2,$s/^/    /'
       # The example names the installer as it was saved (or its usual name, if it was run straight from a download)
       EXNAME=$(basename "$0"); if [[ ! -f $0 || $0 == /dev/* || $0 == /proc/* ]]; then EXNAME="gio4inst"; fi
-      echo ""; echo "    For example, bash $EXNAME -d fedora"
+      echo ""; echo "    For example, $(tput setaf $HOTKEY)bash $EXNAME -d fedora$(tput setaf $ALERT)"     # The command itself in yellow
       echo ""; read -n 1 -s -r -p "    Press any key to return to the command prompt"
       echo ""; echo ""
       tput sgr0; tput cvvis
