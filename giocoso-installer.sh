@@ -697,6 +697,7 @@ config.enable_wayland = false
 config.enable_tab_bar = false
 config.line_height = 1.2
 --config.front_end = "WebGpu"
+--config.front_end = "Software"
 local schemes = wezterm.get_builtin_color_schemes()
 if not schemes[config.color_scheme] then
   config.color_scheme = "Banana Blueberry"
