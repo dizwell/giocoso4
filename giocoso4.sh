@@ -32,6 +32,11 @@
 # ==============================================================================================================
 DIRECT_PLAY=0 COUNTFLAC=0 PLAYS=1 SEARCHCOUNT=0 CONFDIR="$HOME/.local/share/giocoso4"
 
+# Folder and file pickers: dialog versions from late 2019 to May 2021 (RHEL 9's, for one) squash them, so give those
+# a taller box; later versions grow the box themselves, and a taller one there covers the screen's title and messages
+DIALOGDATE=$(dialog --version 2>/dev/null | grep -o '[0-9]\{8\}' | head -1)
+if [[ -n $DIALOGDATE && $DIALOGDATE -lt 20210601 ]]; then PICKHEIGHT=18; else PICKHEIGHT=12; fi
+
 function parse_config {
 source "$CONFDIR/bin/gioparse.sh"
 }

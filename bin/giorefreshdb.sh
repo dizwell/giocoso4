@@ -310,7 +310,7 @@ if [[ $MUSIC_FOLDER == "NODIR" ]]; then
   PROMPTS=on
   tput civis	
   while [[ $GOODMUSIC -eq 0 ]]; do
-    SEARCHDIR=$(dialog --backtitle "Giocoso Database Refresh" --title " Select the root folder of your music collection " --dselect "$MUSICDIR" 18 80 0 3>&1 1>&2 2>&3 3>&- )
+    SEARCHDIR=$(dialog --backtitle "Giocoso Database Refresh" --title " Select the root folder of your music collection " --dselect "$MUSICDIR" $PICKHEIGHT 80 0 3>&1 1>&2 2>&3 3>&- )
     if [[ $? -ne 0 ]]; then break; fi
     if ! [[ -d $SEARCHDIR ]]; then
       unset SEARCHDIR
