@@ -44,7 +44,7 @@ local VERFILE="$CONFDIR/txt/installedversion.txt" INSTBRANCH="" INSTCOMMIT="" IN
 local MONTHS=(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec)
 if [[ -f $VERFILE ]]; then source "$VERFILE"; fi
 if [[ -z $INSTCOMMIT || -z $INSTBRANCH ]]; then
-  MSG="This installation doesn't record which version it is, so Giocoso can't tell. Reinstall Giocoso once, and this check will work from then on."
+  MSG="This installation didn't record which version it is, so Giocoso can't tell. Reinstall Giocoso once, and this check will work from then on."
 else
   if [[ $INSTBRANCH == "beta" ]]; then KIND="beta"; else KIND="stable"; fi
   LATEST=$(wget -qO- --tries=1 --timeout=15 "https://api.github.com/repos/dizwell/giocoso4/commits/$INSTBRANCH" 2>/dev/null)
