@@ -629,6 +629,15 @@ if [[ "$response" == [Yy]* ]]; then
   fi
   source "$NEWCONF/bin/giooscheck.sh" install $GIODISTRO       # Triggers a check of software dependencies and *fixes* them
   downloads
+  # Record which GitHub commit this installation came from (and its date and branch), for Administration's "Check for a
+  # newer version". If GitHub can't be asked, nothing is recorded and that check says so, suggesting a reinstall
+  rm -f "$NEWCONF/txt/installedversion.txt"
+  COMMITINFO=$(wget -qO- --tries=2 --timeout=15 "https://api.github.com/repos/dizwell/giocoso4/commits/${REMOTESOURCE##*/}" 2>/dev/null)
+  INSTCOMMIT=$(echo "$COMMITINFO" | grep -m1 '"sha"' | sed 's/.*"sha": *"\([0-9a-f]*\)".*/\1/')
+  INSTDATE=$(echo "$COMMITINFO" | grep -m1 '"date"' | sed 's/.*"date": *"\([^"]*\)".*/\1/')
+  if [[ $INSTCOMMIT =~ ^[0-9a-f]{40}$ ]]; then
+    printf 'INSTBRANCH="%s"\nINSTCOMMIT="%s"\nINSTDATE="%s"\n' "${REMOTESOURCE##*/}" "$INSTCOMMIT" "$INSTDATE" > "$NEWCONF/txt/installedversion.txt"
+  fi
   if [[ $OS == "DARWIN" ]]; then
     chown -R $USERNAME:staff "$NEWCONF" 2>/dev/null
   else

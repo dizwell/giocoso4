@@ -37,6 +37,35 @@ DIRECT_PLAY=0 COUNTFLAC=0 PLAYS=1 SEARCHCOUNT=0 CONFDIR="$HOME/.local/share/gioc
 DIALOGDATE=$(dialog --version 2>/dev/null | grep -o '[0-9]\{8\}' | head -1)
 if [[ -n $DIALOGDATE && $DIALOGDATE -lt 20210601 ]]; then PICKHEIGHT=18; else PICKHEIGHT=12; fi
 
+function check_new_version {
+# Administration's "Check for a newer version": the installer records which GitHub commit (and its date and branch) it
+# installed from in txt/installedversion.txt; this asks GitHub for the latest commit on that same branch and compares
+local VERFILE="$CONFDIR/txt/installedversion.txt" INSTBRANCH="" INSTCOMMIT="" INSTDATE="" KIND LATEST LCOMMIT LDATE MSG
+local MONTHS=(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec)
+if [[ -f $VERFILE ]]; then source "$VERFILE"; fi
+if [[ -z $INSTCOMMIT || -z $INSTBRANCH ]]; then
+  MSG="This installation doesn't record which version it is, so Giocoso can't tell. Reinstall Giocoso once, and this check will work from then on."
+else
+  if [[ $INSTBRANCH == "beta" ]]; then KIND="beta"; else KIND="stable"; fi
+  LATEST=$(wget -qO- --tries=1 --timeout=15 "https://api.github.com/repos/dizwell/giocoso4/commits/$INSTBRANCH" 2>/dev/null)
+  LCOMMIT=$(echo "$LATEST" | grep -m1 '"sha"' | sed 's/.*"sha": *"\([0-9a-f]*\)".*/\1/')
+  LDATE=$(echo "$LATEST" | grep -m1 '"date"' | sed 's/.*"date": *"\([^"]*\)".*/\1/')
+  if [[ ! $LCOMMIT =~ ^[0-9a-f]{40}$ ]]; then
+    MSG="Giocoso couldn't reach GitHub to check. Please check your network connection and try again."
+  else
+    # ISO dates (2026-11-24T09:41:00Z) shown as 24 Nov 2026, without needing GNU or BSD date
+    INSTDATE="$((10#${INSTDATE:8:2})) ${MONTHS[$((10#${INSTDATE:5:2}-1))]} ${INSTDATE:0:4}"
+    LDATE="$((10#${LDATE:8:2})) ${MONTHS[$((10#${LDATE:5:2}-1))]} ${LDATE:0:4}"
+    if [[ $LCOMMIT == "$INSTCOMMIT" ]]; then
+      MSG="You have the latest $KIND version of Giocoso ($INSTDATE)."
+    else
+      MSG="A newer $KIND version of Giocoso is available ($LDATE); yours is from $INSTDATE. Reinstall Giocoso to get it."
+    fi
+  fi
+fi
+dialog --backtitle "Giocoso Version Check" --title " Check for a Newer Version " --msgbox "\\n$MSG\\n\\nClick OK to return to the menu." 11 80
+}
+
 function parse_config {
 source "$CONFDIR/bin/gioparse.sh"
 }

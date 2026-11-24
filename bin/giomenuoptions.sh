@@ -233,6 +233,7 @@ FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" 2>/dev/null | $GREPPR
     tput cup 13 4;                       echo "6) Test Audio Device configuration"
     tput cup 14 4;                       echo "7) Reset PulseAudio Server (requires sudo)"
     tput cup 15 4;                       echo "8) Change the program colour scheme"
+    tput cup 16 4;                       echo "9) Check for a newer version"
     tput cup 22 4; tput setaf $ALERT; echo -e "X) Exit the program"
   
     until [[ $option == q ]]; do
@@ -281,6 +282,7 @@ FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" 2>/dev/null | $GREPPR
 		  fi
 		  gmenuoptions admin;; 
       8 ) source "$CONFDIR/bin/giocolour.sh"; gmenuoptions admin;;
+      9 ) check_new_version; gmenuoptions admin;;
       P|p ) clear; gmenuoptions play;;
       D|d ) clear; gmenuoptions database;;
       R|r ) clear; gmenuoptions reports;;
