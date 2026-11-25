@@ -6,12 +6,15 @@
 INSTALLDIR="$(command -v giocoso4.sh)"
 
 if [[ ! $($SEDPROG -n '9p' "$INSTALLDIR" 2>/dev/null | $GREPPROG -o '?') ]]; then 
-  PROGVERSION="4.00"
+  PROGBETA="no"; PROGVERSION="4.00"
 else 
-  PROGVERSION="4-beta-0.1"
+  PROGBETA="yes"
+  # A beta install adds the date of the GitHub commit it was installed from (YYMMDD), so two beta installs can be told apart
+  BETADATE=$($GREPPROG -m1 '^INSTDATE=' "$CONFDIR/txt/installedversion.txt" 2>/dev/null | $SEDPROG 's/^INSTDATE="..\(..\)-\(..\)-\(..\).*/\1\2\3/')
+  if [[ $BETADATE =~ ^[0-9]{6}$ ]]; then PROGVERSION="4.00-$BETADATE"; else PROGVERSION="4.00-beta"; fi
 fi
 
-if [[ $PROGVERSION == *"beta"* ]]; then 
+if [[ $PROGBETA == "yes" ]]; then 
   LOGO_PATH="$CONFDIR/art/giocosoicosmallbeta.png"
 else
   LOGO_PATH="$CONFDIR/art/giocosoicosmall.png"
