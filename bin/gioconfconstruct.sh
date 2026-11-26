@@ -5,16 +5,18 @@
 # based on replies to prompts.
 #
 ####################################################################
-CONFIG_COMPLETE=0 CONFFILE="$CONFDIR/txt/giocoso.conf"
+CONFIG_COMPLETE=0 CONFIG_CANCELLED=0 CONFFILE="$CONFDIR/txt/giocoso.conf"
 
-trap cancel_edit TERM      # Trap to quit nicely if the terminal is closed by clicking 'X' icon in window titlebar (works for xterm, not for all terminals)
-trap cancel_edit SIGHUP    # Same thing, different signal
-trap cancel_edit INT       # Trap to prevent Ctrl+C from working
+# Ctrl+C while a form page is showing only marks the edit as cancelled: the page then ends the whole edit, exactly as
+# Cancel and Esc do, and nothing is written. Closing the window quits Giocoso as usual (it has no screen left), also writing nothing
+trap exit_program TERM              # The terminal is closed by clicking the 'X' icon in the window titlebar (not all terminals send it)
+trap exit_program SIGHUP            # Same thing, different signal
+trap 'CONFIG_CANCELLED=1' INT       # Ctrl+C
 
 function cancel_edit {
-  trap exit_program TERM; trap exit_program SIGHUP; trap exit_program INT
-  clear; gmenuoptions admin
-  return
+# Abandon the whole edit: each form page returns at once, nothing is written, and the Administration menu (which
+# called this script) takes over again. The configuration file stays exactly as it was.
+CONFIG_CANCELLED=1
 }
 
 function conf_text {
@@ -70,8 +72,8 @@ dialog --backtitle "Giocoso Configuration File Editor" --title " Program Configu
 "Dialog colour theme name" 10 1 "$confdiatheme" 10 50 35 0 \
 2>"$CONFDIR/tmp/txtparams"
 exitStatus=$?
-if [[ $exitStatus -eq 1 || $exitStatus -eq 255 ]]; then       	# They've pressed Cancel or ESC
-  cancel_edit
+if [[ $CONFIG_CANCELLED -eq 1 || ( $exitStatus -ne 0 && $exitStatus -ne 3 ) ]]; then   # Cancel, Esc or Ctrl+C
+  cancel_edit; return 1
 fi
 
 if [[ $exitStatus -eq 3 ]]; then  								# They've pressed the 'Reset to defaults' button. So set defaults and re-display
@@ -85,7 +87,7 @@ if [[ $exitStatus -eq 3 ]]; then  								# They've pressed the 'Reset to defaul
   CONFPULSE=""						; confpulse="$CONFPULSE"
   CONFWEZTHEME="Banana Blueberry"	; confweztheme="$CONFWEZTHEME"
   CONFDIATHEME="standard"			; confdiatheme="$CONFDIATHEME"
-  textual_parameters
+  textual_parameters; return $?
 else
   readarray -t txtparams < "$CONFDIR/tmp/txtparams" 2>/dev/null
   CONFDEVICE="${txtparams[0]}"; if [[ -z $CONFDEVICE ]]; then CONFDEVICE=default; fi
@@ -125,8 +127,8 @@ dialog --backtitle "Giocoso Configuration File Editor" --title " Program Configu
 "Giocoso font size (in points)" 7 1 "$confwezfntsz" 7 65 15 0 \
 2>"$CONFDIR/tmp/numparams"
 exitStatus=$?
-if [[ $exitStatus -eq 1 || $exitStatus -eq 255 ]]; then        # They've pressed Cancel or ESC
-  cancel_edit
+if [[ $CONFIG_CANCELLED -eq 1 || ( $exitStatus -ne 0 && $exitStatus -ne 3 ) ]]; then   # Cancel, Esc or Ctrl+C
+  cancel_edit; return 1
 fi
 
 if [[ $exitStatus -eq 3 ]]; then  								# They've pressed the 'Reset to defaults' button. So set defaults and re-display
@@ -137,7 +139,7 @@ if [[ $exitStatus -eq 3 ]]; then  								# They've pressed the 'Reset to defaul
   CONFLOGOSIZE="110"   	; 	conflogosize="$CONFLOGOSIZE"
   CONFLOGOPOS="0"     	; 	conflogopos="$CONFLOGOPOS"
   CONFWEZFNTSZ="12"    	; 	confwezfntsz="$CONFWEZFNTSZ"
-  numeric_parameters
+  numeric_parameters; return $?
 else
   readarray -t numparams < "$CONFDIR/tmp/numparams" 2>/dev/null
 
@@ -170,8 +172,8 @@ dialog --backtitle "Giocoso Configuration File Editor" --title " Program Configu
 "Announcement speed" 5 1 "$confvspeed" 5 70 5 0 \
 2>"$CONFDIR/tmp/yornparams"
 exitStatus=$?
-if [[ $exitStatus -eq 1 || $exitStatus -eq 255 ]]; then        # They've pressed Cancel or ESC
-  cancel_edit
+if [[ $CONFIG_CANCELLED -eq 1 || ( $exitStatus -ne 0 && $exitStatus -ne 3 ) ]]; then   # Cancel, Esc or Ctrl+C
+  cancel_edit; return 1
 fi
 
 if [[ $exitStatus -eq 3 ]]; then  								# They've pressed the 'Reset to defaults' button. So set defaults and re-display
@@ -179,7 +181,7 @@ if [[ $exitStatus -eq 3 ]]; then  								# They've pressed the 'Reset to defaul
   CONFPULSEAUDIO="no"	;	confpulseaudio="$CONFPULSEAUDIO"
   CONFRPG="yes"			;	confrpg="$CONFRPG"
   CONFVOICE="no"		;	confvoice="$CONFVOICE"
-  yesno_parameters
+  yesno_parameters; return $?
 else
   readarray -t yornparams < "$CONFDIR/tmp/yornparams" 2>/dev/null
   CONFACCENTS="${yornparams[0]}"; 		if [[ -z $CONFACCENTS ]]; then CONFACCENTS="yes"; fi; 		if [[ ${CONFACCENTS^^} == *N* ]]; then CONFACCENTS="no"; else CONFACCENTS="yes"; fi
@@ -288,13 +290,10 @@ $MAGICK "$CONFDIR/art/giocosoico.png" -resize "$CONFLOGOSIZE" "$CONFDIR/art/gioc
 # Executable code starts here
 # ====================================================================
 get_existing_values
-textual_parameters
-numeric_parameters
-yesno_parameters
 
-# Only create the new file if the entire set of parameters were saved
+# Only create the new file if all three pages were completed with OK: cancelling any page ends the edit there
 # ====================================================================
-if [[ $CONFIG_COMPLETE -eq 1 ]]; then
+if textual_parameters && numeric_parameters && yesno_parameters && [[ $CONFIG_COMPLETE -eq 1 ]]; then
   create_conf
 fi
 
