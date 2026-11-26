@@ -334,8 +334,16 @@ function check_hygiene {
   done
   if [[ ${#bad[@]} -eq 0 ]]; then pass "no Windows (CRLF) line endings"; else fail "CRLF line endings" "${bad[@]}"; fi
 
-  bad=$(find "$ROOT" \( -name '.DS_Store' -o -name '__MACOSX' -o -name '._*' -o -name '*.bak' -o -name '*~' -o -name '*.orig' \) 2>/dev/null | short)
-  if [[ -z $bad ]]; then pass "no .DS_Store / __MACOSX / backup files"; else mapfile -t _h <<< "$bad"; warn "stray files that should not be published (harmless in a live install: leave them out of the release zip)" "${_h[@]}"; fi
+  # In a git clone only what git tracks is published, so only tracked stray files matter (their presence on disk,
+  # kept out by .gitignore, is harmless). Outside a clone there is no way to tell, so look at the files on disk.
+  if git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    bad=$(git -C "$ROOT" ls-files 2>/dev/null | $GREP -E '(^|/)(\.DS_Store|__MACOSX|\._[^/]*|[^/]*\.bak|[^/]*~|[^/]*\.orig)(/|$)')
+    if [[ -z $bad ]]; then pass "no .DS_Store / __MACOSX / backup files are tracked by git"
+    else mapfile -t _h <<< "$bad"; fail "stray files tracked by git, so published to GitHub: add them to .gitignore and remove them from the repository" "${_h[@]}"; fi
+  else
+    bad=$(find "$ROOT" \( -name '.DS_Store' -o -name '__MACOSX' -o -name '._*' -o -name '*.bak' -o -name '*~' -o -name '*.orig' \) 2>/dev/null | short)
+    if [[ -z $bad ]]; then pass "no .DS_Store / __MACOSX / backup files"; else mapfile -t _h <<< "$bad"; warn "stray files that should not be published (harmless in a live install: leave them out of the release zip)" "${_h[@]}"; fi
+  fi
 
   bad=()
   for f in "${ALL[@]}"; do
