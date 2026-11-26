@@ -345,6 +345,12 @@ function check_hygiene {
     if [[ -z $bad ]]; then pass "no .DS_Store / __MACOSX / backup files"; else mapfile -t _h <<< "$bad"; warn "stray files that should not be published (harmless in a live install: leave them out of the release zip)" "${_h[@]}"; fi
   fi
 
+  # GitHub shows README.md on the repository's front page. Installations don't download it, so only a git clone is checked
+  if git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    if [[ -s $ROOT/README.md ]]; then pass "README.md is present"
+    else fail "README.md is missing or empty (GitHub shows it on the repository's front page)"; fi
+  fi
+
   bad=()
   for f in "${ALL[@]}"; do
     $GREP -nE 'whichdir\.txt|pause-debug|/tmp/debug|DEBUG=|debug\.txt' "$f" 2>/dev/null | $GREP -v '^[0-9]*:[[:space:]]*#' | head -2 | sed "s#^#${f#$ROOT/}:#" | while IFS= read -r l; do echo "$l"; done
