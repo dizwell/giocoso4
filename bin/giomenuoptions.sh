@@ -49,14 +49,14 @@ FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" 2>/dev/null | $GREPPR
         option="$seq"
       fi
       case $option in
-		" ") FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" | $GREPPROG -v $GREPPROG | wc -l); if [ $FFMPEGCOUNT -eq 0 ]; then source "$CONFDIR/bin/gioglobresume.sh"; gmenuoptions play; fi;;
-        "" ) FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" | $GREPPROG -v $GREPPROG | wc -l); if [ $FFMPEGCOUNT -eq 0 ]; then source "$CONFDIR/bin/gioplay.sh" default; gmenuoptions play; fi;;
-        1 ) FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" | $GREPPROG -v $GREPPROG | wc -l); if [ $FFMPEGCOUNT -eq 0 ]; then source "$CONFDIR/bin/gioplay.sh" default; gmenuoptions play; fi;;
-        2 ) FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" | $GREPPROG -v $GREPPROG | wc -l); if [ $FFMPEGCOUNT -eq 0 ]; then source "$CONFDIR/bin/gioplay.sh" filter; gmenuoptions play; fi;;
-        3 ) FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" | $GREPPROG -v $GREPPROG | wc -l); if [ $FFMPEGCOUNT -eq 0 ]; then source "$CONFDIR/bin/gioplay.sh" direct; gmenuoptions play; fi;;
-        4 ) FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" | $GREPPROG -v $GREPPROG | wc -l); if [ $FFMPEGCOUNT -eq 0 ]; then source "$CONFDIR/bin/gioplay.sh" sql; gmenuoptions play; fi;;
-        5 ) FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" | $GREPPROG -v $GREPPROG | wc -l); if [ $FFMPEGCOUNT -eq 0 ]; then source "$CONFDIR/bin/gioplay.sh" playlist; gmenuoptions play; fi;;
-        6 ) FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" | $GREPPROG -v $GREPPROG | wc -l); if [ $FFMPEGCOUNT -eq 0 ]; then source "$CONFDIR/bin/gioglobresume.sh"; gmenuoptions play; fi;;
+		" ") FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" | $GREPPROG -v $GREPPROG | wc -l); if [[ $FFMPEGCOUNT -eq 0 ]]; then source "$CONFDIR/bin/gioglobresume.sh"; gmenuoptions play; fi;;
+        "" ) FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" | $GREPPROG -v $GREPPROG | wc -l); if [[ $FFMPEGCOUNT -eq 0 ]]; then source "$CONFDIR/bin/gioplay.sh" default; gmenuoptions play; fi;;
+        1 ) FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" | $GREPPROG -v $GREPPROG | wc -l); if [[ $FFMPEGCOUNT -eq 0 ]]; then source "$CONFDIR/bin/gioplay.sh" default; gmenuoptions play; fi;;
+        2 ) FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" | $GREPPROG -v $GREPPROG | wc -l); if [[ $FFMPEGCOUNT -eq 0 ]]; then source "$CONFDIR/bin/gioplay.sh" filter; gmenuoptions play; fi;;
+        3 ) FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" | $GREPPROG -v $GREPPROG | wc -l); if [[ $FFMPEGCOUNT -eq 0 ]]; then source "$CONFDIR/bin/gioplay.sh" direct; gmenuoptions play; fi;;
+        4 ) FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" | $GREPPROG -v $GREPPROG | wc -l); if [[ $FFMPEGCOUNT -eq 0 ]]; then source "$CONFDIR/bin/gioplay.sh" sql; gmenuoptions play; fi;;
+        5 ) FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" | $GREPPROG -v $GREPPROG | wc -l); if [[ $FFMPEGCOUNT -eq 0 ]]; then source "$CONFDIR/bin/gioplay.sh" playlist; gmenuoptions play; fi;;
+        6 ) FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" | $GREPPROG -v $GREPPROG | wc -l); if [[ $FFMPEGCOUNT -eq 0 ]]; then source "$CONFDIR/bin/gioglobresume.sh"; gmenuoptions play; fi;;
 		7 ) source "$CONFDIR/bin/gioqrydel.sh"; gmenuoptions play;;
         P|p ) clear; gmenuoptions play;;
         D|d ) clear; gmenuoptions database;;
@@ -376,10 +376,10 @@ FFMPEGCOUNT=$(ps -ef | $GREPPROG "$FFNAME -stats_period 1" 2>/dev/null | $GREPPR
           [[ "${PERFORMERS:0:2}" == ", " ]] && PERFORMERS="${PERFORMERS:2:99}"
 
           # Truncate if needed
-          [ ${#COMPOSER} -ge 44 ] && COMPOSER="${COMPOSER:0:43}…"
-          [ ${#RECORDING} -ge 44 ] && RECORDING="${RECORDING:0:43}…"
-          [ ${#DISTART} -ge 44 ] && DISTART="${DISTART:0:43}…"
-          [ ${#PERFORMERS} -ge 44 ] && PERFORMERS=$(printf '%s' "$PERFORMERS" | awk '{print substr($0,1,43)}') && PERFORMERS="$PERFORMERS"$'\u2026'
+          [[ ${#COMPOSER} -ge 44 ]] && COMPOSER="${COMPOSER:0:43}…"
+          [[ ${#RECORDING} -ge 44 ]] && RECORDING="${RECORDING:0:43}…"
+          [[ ${#DISTART} -ge 44 ]] && DISTART="${DISTART:0:43}…"
+          [[ ${#PERFORMERS} -ge 44 ]] && PERFORMERS=$(printf '%s' "$PERFORMERS" | awk '{print substr($0,1,43)}') && PERFORMERS="$PERFORMERS"$'\u2026'
 
           NUM='^[0-9]+$'
           if [[ -z $RECORDING_YEAR ]] || [[ ! $RECORDING_YEAR =~ $NUM ]]; then

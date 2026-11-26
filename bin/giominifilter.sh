@@ -21,7 +21,7 @@ dialog --backtitle "Music Selection by Filter" --title " Selection criteria: " -
 "Unplayed (Y/N)" 4 1 "" 4 16 2 1 \
 2>"$CONFDIR/tmp/musicfilter.txt"
 
-if [ $? -eq 0 ]; then
+if [[ $? -eq 0 ]]; then
   CANCELLED=0
   readarray -t musicfilter < "$CONFDIR/tmp/musicfilter.txt" 2>/dev/null
 else
