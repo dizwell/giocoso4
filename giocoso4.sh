@@ -488,7 +488,7 @@ if [[ $DIRECT_PLAY -eq  0 ]]; then
   tput cup 22 4; tput setaf "$MAINTEXT"; echo -en "Previous plays: "; tput setaf "$INFOTEXT"; echo -en "$PREVIOUSPLAYS"
   tput cup 23 4; tput setaf "$MAINTEXT"; echo -en "ReplayGain Applied: "; tput setaf "$INFOTEXT"; echo -en "$DISPLAYRPG"
 
-  readarray -t composition < <(echo "$FULLWORKNAME" | fmt -w 45)
+  readarray -t composition < <(echo "$FULLWORKNAME" | LC_ALL="$UTF8LOCALE" fmt -w 45)
   counter=0
   for i in "${!composition[@]}"; do
     ((counter++))
@@ -496,7 +496,7 @@ if [[ $DIRECT_PLAY -eq  0 ]]; then
     lastline_reached=$counter
   done
 
-  readarray -t performers < <(echo "$displaycomment" | fmt -w 45)
+  readarray -t performers < <(echo "$displaycomment" | LC_ALL="$UTF8LOCALE" fmt -w 45)
   counter=0
   for i in "${!performers[@]}"; do
     ((counter++))
@@ -533,7 +533,7 @@ else    # True for minimal player
   tput cup 22 4; tput setaf "$MAINTEXT"; echo -en "Previous plays: "; tput setaf "$INFOTEXT"; echo -en "$PREVIOUSPLAYS"
   tput cup 23 4; tput setaf "$MAINTEXT"; echo -en "ReplayGain Applied: "; tput setaf "$INFOTEXT"; echo -en "$DISPLAYRPG"
 
-  readarray -t composition < <(echo "$FULLWORKNAME" | fmt -w 45)
+  readarray -t composition < <(echo "$FULLWORKNAME" | LC_ALL="$UTF8LOCALE" fmt -w 45)
   counter=0
   for i in "${!composition[@]}"; do
     ((counter++))
@@ -541,7 +541,7 @@ else    # True for minimal player
     lastline_reached=$counter
   done
 
-  readarray -t performers < <(echo "$displaycomment" | fmt -w 45)
+  readarray -t performers < <(echo "$displaycomment" | LC_ALL="$UTF8LOCALE" fmt -w 45)
   counter=0
   for i in "${!performers[@]}"; do
     ((counter++))
@@ -692,6 +692,15 @@ fi
 source "$CONFDIR/bin/giotput.sh"
 source "$CONFDIR/bin/giooscheck.sh"
 source "$CONFDIR/txt/programvariables.txt"
+
+# A UTF-8 language setting for text tools that need one to keep accented letters (fmt silently drops them otherwise,
+# and iconv can't transliterate them): the session's own if it is UTF-8, as in WezTerm, else a standard one, since
+# sessions without one (SSH from a phone, for example) are common
+UTF8LOCALE="${LC_ALL:-${LC_CTYPE:-$LANG}}"
+case "$UTF8LOCALE" in
+  *[Uu][Tt][Ff]-8*|*[Uu][Tt][Ff]8*) : ;;
+  *) if [[ $OSFAMILY == *"MACOS"* ]]; then UTF8LOCALE="en_GB.UTF-8"; else UTF8LOCALE="C.UTF-8"; fi ;;
+esac
 FFNAME="${FFMPEG##*/}"                       # Just the program's name (eg ffmpeg-macos-arm64): it is what ps, pgrep and pkill look for
 source "$CONFDIR/bin/giofunctions.sh"
 source "$CONFDIR/bin/giospin.sh"

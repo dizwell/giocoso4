@@ -66,13 +66,8 @@ if [[ $(whoami) == "hjr" ]]; then
   # ===============================================================================================================
   # Build the website's composer URL fragment, identically on every OS: transliterate accents to plain
   # ASCII, drop everything that isn't a letter, digit or space, then encode the spaces.
-  # iconv's //TRANSLIT only works under a UTF-8 locale, so use one if the session lacks it.
-  ICONVLOCALE="${LC_ALL:-${LC_CTYPE:-$LANG}}"
-  case "$ICONVLOCALE" in
-    *[Uu][Tt][Ff]-8*|*[Uu][Tt][Ff]8*) : ;;
-    *) if [[ $OSFAMILY == *"MACOS"* ]]; then ICONVLOCALE="en_GB.UTF-8"; else ICONVLOCALE="C.UTF-8"; fi ;;
-  esac
-  HTMLARTIST=$(printf '%s' "$THISARTIST" | LC_ALL="$ICONVLOCALE" iconv -f utf-8 -t ascii//TRANSLIT 2>/dev/null | $SEDPROG 's/[^a-zA-Z 0-9]//g; s/ /%20/g')
+  # iconv's //TRANSLIT only works under a UTF-8 locale: UTF8LOCALE (set at startup in giocoso4.sh) is one.
+  HTMLARTIST=$(printf '%s' "$THISARTIST" | LC_ALL="$UTF8LOCALE" iconv -f utf-8 -t ascii//TRANSLIT 2>/dev/null | $SEDPROG 's/[^a-zA-Z 0-9]//g; s/ /%20/g')
   echo "<b>Composer</b>     :  <a href=\"https://bbritten.com/composer/$HTMLARTIST/\" target=\"_blank\">$THISARTIST</a>" > "$CONFDIR"/txt/newplay.txt		# At the start of a new play, output details of what's about to be played
   echo "<b>Recording</b>    :  $THISALBUM" >> "$CONFDIR"/txt/newplay.txt	 # to a text file (which can subsequently be uploaded to a website, for example)
   echo "<b>Performers</b>  :  $THISCOMMENT" >> "$CONFDIR"/txt/newplay.txt

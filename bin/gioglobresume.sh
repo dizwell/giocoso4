@@ -165,7 +165,7 @@ if [[ $($METAFLAC --show-md5sum "$f" 2>&1 | $GREPPROG -i error | wc -l) -eq 0 ]]
   tput cup 22 4; tput setaf "$MAINTEXT"; echo -en "Previous plays: "; tput setaf "$INFOTEXT"; echo -en "$PREVIOUSPLAYS"
   tput cup 23 4; tput setaf "$MAINTEXT"; echo -en "ReplayGain Applied: "; tput setaf "$INFOTEXT"; echo -en "$DISPLAYRPG"
 
-  readarray -t composition < <(echo "$FULLWORKNAME" | fmt -w 45)
+  readarray -t composition < <(echo "$FULLWORKNAME" | LC_ALL="$UTF8LOCALE" fmt -w 45)
   counter=0
   for i in "${!composition[@]}"; do
     ((counter++))
@@ -173,7 +173,7 @@ if [[ $($METAFLAC --show-md5sum "$f" 2>&1 | $GREPPROG -i error | wc -l) -eq 0 ]]
     lastline_reached=$counter
   done
 
-  readarray -t performers < <(echo "$displaycomment" | fmt -w 45)
+  readarray -t performers < <(echo "$displaycomment" | LC_ALL="$UTF8LOCALE" fmt -w 45)
   counter=0
   for i in "${!performers[@]}"; do
     ((counter++))
