@@ -123,6 +123,7 @@ if [[ $MAXLOOPS -eq 0 ]]; then
   tput cup 14 4; tput setaf "$ALERT"; read -p "Press a key to continue."
 fi
 INVALIDFLAC=0                                              # A fresh run: no invalid FLAC found yet
+MINIGPLAYING=1                                             # A run is under way: a dropped connection now lets it carry on (see minig_hangup)
 while [[ $PLAYS -le $MAXLOOPS ]]; do 
   TOTALDUR=0; duration=0
   PLAYDIR=$($SEDPROG "${PLAYS}q;d" "$CONFDIR/txt/searchfilter.txt" 2>/dev/null); DIRBASE="$PLAYDIR"
@@ -152,8 +153,7 @@ while [[ $PLAYS -le $MAXLOOPS ]]; do
     echo -en "\033]0; $TERMTITLE \007\c"
   fi
     
-  MINIGPLAYING=1; play_music; MINIGPLAYING=0
-  if [[ $LOSTTERMINAL -eq 1 ]]; then exit_program; fi     # The connection went during that play: it has finished, so stop here
+  play_music
   if [[ $INVALIDFLAC -eq 1 ]]; then break; fi                # An invalid FLAC was found: stop the whole run, as the message says
   ((PLAYS++))
 
@@ -162,6 +162,8 @@ while [[ $PLAYS -le $MAXLOOPS ]]; do
   fi
 done
 rm -rf "$CONFDIR/txt/searchfilter.txt" 2>/dev/null
+MINIGPLAYING=0
+if [[ $LOSTTERMINAL -eq 1 ]]; then exit_program; fi       # The connection went during the run, which is now over: with no screen to return to, quit
 }
 
 # Executable code starts here

@@ -71,9 +71,10 @@ source "$CONFDIR/bin/gioparse.sh"
 }
 
 function minig_hangup {
-# minig only: its terminal has gone (a phone's SSH connection dropped, for example). A play under way carries on to
-# its end and is recorded as normal, with nothing written to the vanished screen; the play loop then quits Giocoso
-# instead of starting the next selection. With no play under way, Giocoso simply quits, as before.
+# minig only: its terminal has gone (a phone's SSH connection dropped, for example). A run of plays under way carries
+# on to the end of its selection, each play recorded as normal, with nothing written to the vanished screen; a
+# reconnected minig can still Skip, Auto-stop or Terminate it. When the run ends, the play loop quits Giocoso.
+# With no run under way, Giocoso simply quits, as before.
 if [[ $MINIGPLAYING -eq 1 ]]; then
   LOSTTERMINAL=1; exec </dev/null >/dev/null 2>&1
 else
@@ -580,7 +581,8 @@ if [[ $COUNTDOWN -gt 0 && $PLAYS -gt 1 ]]; then
       tput cup 25 4; tput sgr0; echo -en "                                        "
       tput cup 25 4; tput setaf $LOGO; echo -en "Play will start in $i seconds...";
     fi
-    tput cup 3 77; tput setaf 0; read -t 1 -rsn 1 input                             # Check to see if any control keys have been pressed
+    if [[ $LOSTTERMINAL -eq 1 ]]; then input=""; sleep 1                           # minig with its connection gone: the countdown still takes its full time
+    else tput cup 3 77; tput setaf 0; read -t 1 -rsn 1 input; fi                     # Check to see if any control keys have been pressed
     if [[ ! -z $input ]]; then
       case $input in
         c|C ) break;;
