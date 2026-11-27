@@ -147,6 +147,8 @@ while [[ -f $CONFDIR/txt/nowplaying.txt ]]; do
     tput cup 2 57; tput setaf $MAINTEXT; echo -n "Played:     "; tput setaf $INFOTEXT; echo -n "${POSITION_IN_STREAM:0:8}"; tput setaf $MAINTEXT; echo -n " of "; tput setaf $INFOTEXT; echo -n "$DURATION_IN_HOURS"
     tput cup 3 57; tput setaf $MAINTEXT; echo -n "Ending at:  "; tput setaf $INFOTEXT; echo -n "$ENDING_TIME"
     tput cup 3 77; tput setaf 0
+  else                                                  # minig: the playing time, beneath its "Ending at" line
+    tput cup 18 4; tput setaf $MAINTEXT; echo -n "Played:    "; tput setaf $INFOTEXT; echo -n "${POSITION_IN_STREAM:0:8}"; tput setaf $MAINTEXT; echo -n " of "; tput setaf $INFOTEXT; echo -n "$DURATION_IN_HOURS"
   fi
   if [[ $LOSTTERMINAL -eq 1 ]]; then input=""; sleep 0.95     # minig with its connection gone: no keys can arrive
   else read -t 0.95 -rsN 1 input; fi                    # Check to see if any control keys have been pressed
