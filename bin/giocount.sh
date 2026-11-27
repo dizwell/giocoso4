@@ -60,7 +60,6 @@ echo "Previous plays@$PREVIOUSPLAYS" >> "$CONFDIR"/txt/mgioplay.txt
 echo "ReplayGain Applied@$RPGAIN" >> "$CONFDIR"/txt/mgioplay.txt
 echo "LastPlay@$LASTPLAYED">> "$CONFDIR"/txt/mgioplay.txt
 
-if [[ $DIRECT_PLAY -eq 1 ]]; then tput cup 17 4; tput setaf "$MAINTEXT"; echo -en "Ending at: ";tput setaf "$INFOTEXT"; echo -en "$INVARIANT_ENDING_TIME"; fi
 
 if [[ $(whoami) == "hjr" ]]; then
   # This code turns what's playing into html, for use on a website with hot links, for example, to biographies
@@ -147,8 +146,8 @@ while [[ -f $CONFDIR/txt/nowplaying.txt ]]; do
     tput cup 2 57; tput setaf $MAINTEXT; echo -n "Played:     "; tput setaf $INFOTEXT; echo -n "${POSITION_IN_STREAM:0:8}"; tput setaf $MAINTEXT; echo -n " of "; tput setaf $INFOTEXT; echo -n "$DURATION_IN_HOURS"
     tput cup 3 57; tput setaf $MAINTEXT; echo -n "Ending at:  "; tput setaf $INFOTEXT; echo -n "$ENDING_TIME"
     tput cup 3 77; tput setaf 0
-  else                                                  # minig: the playing time, beneath its "Ending at" line
-    tput cup 18 4; tput setaf $MAINTEXT; echo -n "Played:    "; tput setaf $INFOTEXT; echo -n "${POSITION_IN_STREAM:0:8}"; tput setaf $MAINTEXT; echo -n " of "; tput setaf $INFOTEXT; echo -n "$DURATION_IN_HOURS"
+  else                                                  # minig: the playing time, in the line above its play details
+    tput cup 17 4; tput setaf $MAINTEXT; echo -n "Played: "; tput setaf $INFOTEXT; echo -n "${POSITION_IN_STREAM:0:8}"; tput setaf $MAINTEXT; echo -n " of "; tput setaf $INFOTEXT; echo -n "$DURATION_IN_HOURS"
   fi
   if [[ $LOSTTERMINAL -eq 1 ]]; then input=""; sleep 0.95     # minig with its connection gone: no keys can arrive
   else read -t 0.95 -rsN 1 input; fi                    # Check to see if any control keys have been pressed

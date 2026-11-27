@@ -539,7 +539,7 @@ else    # True for minimal player
      
   tput cup 5 4; tput setaf "$MAINTEXT"; if [[ ${#displaycomp} -gt 45 ]]; then fit_text "$displaycomp" 45; else echo -en "$displaycomp$displayapostrophe"; fi   # Long (mis-tagged) names are trimmed to fit
   tput cup 16 0; tput setaf "$DRAWLINES"; echo -en "├─────────────────────────────────────────────────┤"
-  tput cup 18 4; tput setaf "$MAINTEXT"; echo -en "Days since last play: "; tput setaf "$INFOTEXT"; echo -en "$LASTPLAYED"
+  tput cup 18 4; tput setaf "$MAINTEXT"; echo -en "Days since last played: "; tput setaf "$INFOTEXT"; echo -en "$LASTPLAYED : $LASTCOMPOSERPLAYED"
   tput cup 19 4; tput setaf "$MAINTEXT"; echo -en "Recording Year: "; tput setaf "$INFOTEXT"; echo -en "$displaydate"
   tput cup 20 4; tput setaf "$MAINTEXT"; echo -en "Genre: "; tput setaf "$INFOTEXT"; echo -en "$displaygenre"
   tput cup 21 4; tput setaf "$MAINTEXT"; echo -en "Audio Tech: "; tput setaf "$INFOTEXT"; echo -en "$displayhertz/$displaydepth"
