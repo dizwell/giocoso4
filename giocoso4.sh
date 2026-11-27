@@ -70,6 +70,17 @@ function parse_config {
 source "$CONFDIR/bin/gioparse.sh"
 }
 
+function minig_hangup {
+# minig only: its terminal has gone (a phone's SSH connection dropped, for example). A play under way carries on to
+# its end and is recorded as normal, with nothing written to the vanished screen; the play loop then quits Giocoso
+# instead of starting the next selection. With no play under way, Giocoso simply quits, as before.
+if [[ $MINIGPLAYING -eq 1 ]]; then
+  LOSTTERMINAL=1; exec </dev/null >/dev/null 2>&1
+else
+  exit_program
+fi
+}
+
 function exit_program {
 # Giocoso can play music, or it can do 'other stuff'. If a play-music session quits, it should tidy up after itself.
 # If an 'other stuff' (reporting, control etc) session quits, it should just quit and not monkey about with files on displaywork
@@ -244,6 +255,7 @@ function start_playback {
 PLAY_OFFSET=0
 PLAYSTART_CLOCKTIME=$(date +%s)
 touch "$CONFDIR/txt/nowplaying.txt"
+if [[ $DIRECT_PLAY -eq 1 ]]; then trap '' SIGHUP; fi    # minig: ffmpeg and gawk inherit this, so a dropped connection doesn't stop the music
     
 if [[ $(uname -a) == *"Darwin"* ]]; then
   if [[ $FORCE_PULSE -eq 1 ]]; then 
@@ -727,6 +739,7 @@ if [[ $DIRECT_PLAY -eq 0 ]]; then
   clear; gmenuoptions play
 else
   tput civis; printf '\e[8;28;52t' 	# Setting terminal virtual size to 52x28, regardless of what it's actually set to
+  trap minig_hangup SIGHUP     # minig survives a dropped connection until the current play ends (see minig_hangup)
   clear; gmenuoptions minig
 fi
 exit_program

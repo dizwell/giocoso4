@@ -152,7 +152,8 @@ while [[ $PLAYS -le $MAXLOOPS ]]; do
     echo -en "\033]0; $TERMTITLE \007\c"
   fi
     
-  play_music
+  MINIGPLAYING=1; play_music; MINIGPLAYING=0
+  if [[ $LOSTTERMINAL -eq 1 ]]; then exit_program; fi     # The connection went during that play: it has finished, so stop here
   if [[ $INVALIDFLAC -eq 1 ]]; then break; fi                # An invalid FLAC was found: stop the whole run, as the message says
   ((PLAYS++))
 

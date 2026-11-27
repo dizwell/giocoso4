@@ -8,6 +8,7 @@
 # Passed parameters: $1=Duration of recording in seconds
 #
 ####################################################################
+[[ $DIRECT_PLAY -eq 1 ]] && trap minig_hangup SIGHUP   # minig: playback is running and immune to a dropped connection; restore minig's handler
 rm -f "$CONFDIR/txt/autostop.txt" "$CONFDIR/txt/terminate.txt" "$CONFDIR/txt/repeat.txt" 2>/dev/null
 STARTEDPLAYING=$($DATEPROG +'%H:%M:%S')             # Invariant 'now' in hh:mm:ss format, indicating when this play started
 PID=$(pgrep -f "$FFNAME -stats_period 1")            # Process ID of the playing session
@@ -147,7 +148,8 @@ while [[ -f $CONFDIR/txt/nowplaying.txt ]]; do
     tput cup 3 57; tput setaf $MAINTEXT; echo -n "Ending at:  "; tput setaf $INFOTEXT; echo -n "$ENDING_TIME"
     tput cup 3 77; tput setaf 0
   fi
-  read -t 0.95 -rsN 1 input                             # Check to see if any control keys have been pressed
+  if [[ $LOSTTERMINAL -eq 1 ]]; then input=""; sleep 0.95     # minig with its connection gone: no keys can arrive
+  else read -t 0.95 -rsN 1 input; fi                    # Check to see if any control keys have been pressed
 
   if [[ $input == $'\e' ]]; then
     seq="$input"
