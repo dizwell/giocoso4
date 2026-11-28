@@ -692,6 +692,7 @@ done
 }
 
 function main {
+source "$CONFDIR/bin/giotput.sh"                  # Built-in tput, clear and reset: loaded first, before anything draws
 clear
 # Create a folder structure, if it doesn't already exist (and suppress errors if it does!)
 mkdir -p "$CONFDIR" "$CONFDIR/txt" "$CONFDIR/bin" "$CONFDIR/db" "$CONFDIR/art" 2>/dev/null  
@@ -703,7 +704,6 @@ else
 fi
 
 # Invoke a bunch of files that provide cross-program functionality
-source "$CONFDIR/bin/giotput.sh"
 source "$CONFDIR/bin/giooscheck.sh"
 source "$CONFDIR/txt/programvariables.txt"
 
